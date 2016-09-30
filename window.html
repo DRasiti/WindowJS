@@ -6,16 +6,29 @@
 		<meta name="description" content="" />
        	<meta name="keywords" content="" />
 
-       	<link rel="stylesheet" type="text/css" href="window.css" />
-       	<script type="text/javascript" src="window.js"></script>
+       	<link rel="stylesheet" type="text/css" href="css/window.css" />
+       	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
+       	
 	</head>
 
 	<body>
+		<h1>WindowJS</h1>
+		<img src="http://img.radio-canada.ca/2016/04/22/635x357/160422_wo56j_joconde_sn635.jpg" />
 		
+		<button id="open" class="fa fa-external-link"> Window</button>
+		
+		<div id="result"></div>
+		
+		<!--
+		<div class="w-overlay"></div>
 		<div class="window">
 			<div class="w-title">
-				<span>Title Window</span>
-				<i>&#x2715;</i>
+				<span class="title">Title Window</span>
+				<div class="w-controls">
+					<i class="fa fa-close red"></i>
+					<i class="fa fa-external-link blue"></i>
+					<i class="fa fa-angle-down orange"></i>
+				</div>
 			</div>
 			<div class="w-content">
 				Content123<br/><br/>
@@ -30,6 +43,23 @@
 				Content<br/><br/>
 			</div>
 		</div>
-
+		-->
+		
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+		<script type="text/javascript" src="window.js"></script>
+		<script>
+			document.getElementById('open').addEventListener('click', function(){
+				var w = new WindowJS({
+					width: 750,
+					height: 300,
+					ajaxContent: true,
+					ajax: {
+						url: 'simple.html',
+						method: 'get'
+					}
+				});
+				w.open();
+			});
+		</script>
 	</body>
 </html>
