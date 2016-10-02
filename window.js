@@ -56,8 +56,6 @@
 		 * Sotre All instances in an array
 		 */
 		WindowJS.allInstances.push(this);
-
-		console.dir(WindowJS.allInstances);
 	}
 
 	WindowJS.allInstances = [];
@@ -110,7 +108,7 @@
 	function mouseDown(e)
 	{
 		var _this = this;
-	    //document.addEventListener('mousemove', mouseMove.bind(_this), false);
+
 	    document.onmousemove = mouseMove.bind(_this);
 
 	    e.pageX = e.pageX || e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
@@ -118,7 +116,7 @@
 	    dragOffset.x = e.pageX - _this._window.offsetLeft;
 	    dragOffset.y = e.pageY - _this._window.offsetTop;
 
-	    /* */
+	    /* Place the current window in the foregroud */
 	    WindowJS.allInstances.forEach(function(elem){
 	    	elem._window.style.zIndex = 9999 - elem._instanceId;
 	    });
@@ -133,8 +131,6 @@
 
 	    /* Reset the window opacity when moving is stopped */
 		_this._window.style.opacity = '1';
-
-		//console.log(_this._options.title);
 	}
 
 	function mouseMove(e)
@@ -257,26 +253,8 @@
 					
 					request.send(null);
 					
-					
-					/*
-					$.ajax({
-						url: this._options.ajax.url,
-						cache: false,
-						dataType : 'html',
-						success : function(code_html, statut){
-							console.log(code_html);
-							contentContainer.innerHTML = code_html;
-						},
-						error : function(resultat, statut, erreur){
-							console.log(resultat);
-						}
-					});
-					*/
-
-					//contentContainer.innerHTML = '<object type="text/html" data="' + this._options.ajax.url +'" ></object>';
-					
 				}
-				else if(this._options.ajax.method == 'post')
+				else if(this._options.ajax.method == 'post') /* NEXT STEP ;) */
 				{
 					
 				}
@@ -342,11 +320,6 @@
 		{
 			this._closeButton.addEventListener('click', this.close.bind(this));
 		}
-		
-		/*if(this._overlay)
-		{
-			this._overlay.addEventListener('click', this.close.bind(this));
-		}*/
 	}
 	
 	/* Utility method to extend defaults with user options */
