@@ -1,0 +1,17 @@
+<div>
+	<h1>WindowJS</h1>
+
+	<a id="open2" class="btn"><span class="fa fa-external-link"></span> modal</a>
+
+	<script>
+		document.getElementById('open2').addEventListener('click', function(){
+			var w = new WindowJS({
+				width: 250,
+				height: 170,
+				modal: true,
+				draggable: false
+			});
+			w.open();
+		});
+	</script>
+</div>
