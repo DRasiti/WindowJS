@@ -1,17 +1,18 @@
-<div>
+<div style="text-align: center;">
 	<h1>WindowJS</h1>
+	<p>Ce contenu vien d'être charger en Ajax !</p>
 
-	<a id="open2" class="btn"><span class="fa fa-external-link"></span> modal</a>
+	<a id="modal" class="btn"><span class="fa fa-external-link"></span> modal</a>
 
 	<script>
-		document.getElementById('open2').addEventListener('click', function(){
-			var w = new WindowJS({
+		document.getElementById('modal').addEventListener('click', function(){
+			
+			new WindowJS({
 				width: 250,
 				height: 170,
 				modal: true,
 				draggable: false
 			});
-			w.open();
 		});
 	</script>
 </div>

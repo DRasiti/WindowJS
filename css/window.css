@@ -1,3 +1,28 @@
+.loader{
+	background: rgba(255, 255, 255, 0.85);
+	position: absolute;
+	
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+}
+.loader > img{
+	
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	
+	width: 50px;
+	height: 50px;
+	
+	-webkit-transform: translate(-50%, -50%);
+       -moz-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+         -o-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+}
+
 .btn{
 	display: inline-block;
 	margin-bottom: 0;
@@ -35,7 +60,7 @@
 	background-color: rgba(255,255,255, .85);
 }
 .window{
-	position: absolute;
+	position: fixed;
 	/*z-index: 9999;*/
 	
 	border: 1px solid #A6ADC3;
@@ -125,7 +150,7 @@
 }
 .w-content{
 	color: #5C657C;
-	max-height: 420px;
+	max-height: 100%;
 	overflow: auto;
 	padding: 15px;
 	-moz-border-radius: 0 0 4px 4px;

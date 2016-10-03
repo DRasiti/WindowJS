@@ -1,4 +1,3 @@
-
 ;(function(){
 
 	var dragOffset = {
@@ -10,11 +9,37 @@
 		this._options = null;
 		this._window = null;
 		this._title = null;
+		this._titleBar = null;
+		this._content = null;
 		this._overlay = null;
 		this._closeButton = null;
-		this._maximizeButton = null;
-		this._minimizeButton = null;
-
+		this._maximizeMinimizeButton = null;
+		this._reduceEnlargeButton = null;
+		
+		this._wDefaultWidth = null;
+		this._wDefaultHeight = null;
+		this._wDefaultTop = null;
+		this._wDefaultLeft = null;
+		
+		this._wCurrentWidth = null;
+		this._wCurrentHeight = null;
+		this._wCurrentTop = null;
+		this._wCurrentLeft = null;
+		this._wCurrentRight = null;
+		this._wCurrentBottom = null;
+		
+		this._contentPaddingTop = null;
+		this._contentPaddingBottom = null;
+		this._contentPaddingLeft = null;
+		this._contentPaddingRight = null;
+		
+		this._fullscreen = false;
+		this._reduced = false;
+		
+		this._titleHeight = null;
+		this._contentDefaultHeight = null;
+		this._contentCurrentHeight = null;
+		
 		this._instanceId;
 		
 		var defaults = {
@@ -31,7 +56,8 @@
 			ajax: {
 				url : '',
 				method : 'get'
-			}
+			},
+			onClose: null
 		};
 		
 		/* Create options by extending defaults with the passed in arugments */
@@ -56,14 +82,8 @@
 		 * Sotre All instances in an array
 		 */
 		WindowJS.allInstances.push(this);
-	}
-
-	WindowJS.allInstances = [];
-	
-	/**
-	 * Public Methods
-	 */
-	WindowJS.prototype.open = function(){
+		
+		
 		buildWindow.call(this);
 		initEvents.call(this);
 		if(this._options.draggable)
@@ -71,6 +91,20 @@
 			draggable.call(this);
 		}
 	}
+
+	WindowJS.allInstances = [];
+	
+	/**
+	 * Public Methods
+	 */
+	/*WindowJS.prototype.open = function(){
+		buildWindow.call(this);
+		initEvents.call(this);
+		if(this._options.draggable)
+		{
+			draggable.call(this);
+		}
+	}*/
 	WindowJS.prototype.close = function(){
 		this._window.parentNode.removeChild(this._window);
 
@@ -89,11 +123,175 @@
 		});
 
 		WindowJS.allInstances = newArray;
+
+		if(this._options.onClose !== null && typeof this._options.onClose === 'function')
+		{
+			this._options.onClose();
+		}
+	}
+	WindowJS.prototype.maximizeMinimize = function(){
+		var contentStyle, ccPaddingTop, ccPaddingBottom, windowStyle, borderWidth, borderHeight, windowHeight;
+		
+		if(this._fullscreen)
+		{
+			this._fullscreen = false;
+			
+			this._window.style.width = this._wDefaultWidth + 'px';
+			this._window.style.height = this._wDefaultHeight + 'px';
+			this._window.style.top = this._wDefaultTop + 'px';
+			this._window.style.left = this._wDefaultLeft + 'px';
+			this._window.style.right = '';
+			this._window.style.bottom = '';
+			
+			this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+			this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
+			this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
+			this._content.style.paddingRight = this._contentPaddingRight + 'px';
+			
+			if(this._options.draggable)
+			{
+				draggable.call(this);
+				removeTitleClick.call(this);
+			}			
+			
+			this._maximizeMinimizeButton.className = 'fa fa-expand blue';
+		}
+		else
+		{
+			this._fullscreen = true;
+			
+			this._window.style.width = 'auto';
+			this._window.style.height = 'auto';
+			this._window.style.top = '2px';
+			this._window.style.left = '2px';
+			this._window.style.right = '2px';
+			this._window.style.bottom = '2px';
+			
+			this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+			this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
+			this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
+			this._content.style.paddingRight = this._contentPaddingRight + 'px';
+			
+			if(this._options.draggable)
+			{
+				removeDraggable.call(this);
+				this._titleBar.onclick = addTitleClick.bind(this);
+			}
+			
+			this._maximizeMinimizeButton.className = 'fa fa-compress blue';
+		}
+		
+		contentStyle =  this._content.currentStyle || window.getComputedStyle(this._content);
+		ccPaddingTop = contentStyle.paddingTop.substr(0, contentStyle.paddingTop.length - 2);
+		ccPaddingBottom = contentStyle.paddingBottom.substr(0, contentStyle.paddingBottom.length - 2);
+		
+		windowStyle = this._window.currentStyle || window.getComputedStyle(this._window);
+		borderWidth = parseInt(windowStyle.borderLeftWidth.substr(0, windowStyle.borderLeftWidth.length - 2)) + parseInt(windowStyle.borderRightWidth.substr(0, windowStyle.borderRightWidth.length - 2));
+		borderHeight = parseInt(windowStyle.borderTopWidth.substr(0, windowStyle.borderTopWidth.length - 2)) + parseInt(windowStyle.borderBottomWidth.substr(0, windowStyle.borderBottomWidth.length - 2));
+		windowHeight = parseInt(windowStyle.height.substr(0, windowStyle.height.length - 2));
+		
+		/* Current window size */
+		this._wCurrentWidth = parseInt(windowStyle.width.substr(0, windowStyle.width.length - 2));
+		this._wCurrentHeight = parseInt(windowStyle.height.substr(0, windowStyle.height.length - 2));
+		this._wCurrentTop = parseInt(windowStyle.top.substr(0, windowStyle.top.length - 2));
+		this._wCurrentLeft = parseInt(windowStyle.left.substr(0, windowStyle.left.length - 2));
+		this._wCurrentRight = parseInt(windowStyle.right.substr(0, windowStyle.right.length - 2));
+		this._wCurrentBottom = parseInt(windowStyle.bottom.substr(0, windowStyle.bottom.length - 2));
+		
+		this._content.style.maxHeight = windowHeight - this._titleHeight - ccPaddingTop - ccPaddingBottom + 'px';
+		
+		/* Current content size */
+		this._contentCurrentHeight = parseInt(contentStyle.maxHeight.substr(0, contentStyle.maxHeight.length - 2));
+		
+		/* Reset reduce values */
+		this._reduced = false;
+		this._reduceEnlargeButton.className = 'fa fa-angle-up orange';
+	}
+	WindowJS.prototype.reduceEnlarge = function(){
+		if(this._reduced)
+		{
+			this._reduced = false;
+			
+			if(this._fullscreen)
+			{
+				this._content.style.maxHeight = this._contentCurrentHeight + 'px';
+				this._window.style.bottom = '2px';
+				this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+				this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
+				this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
+				this._content.style.paddingRight = this._contentPaddingRight + 'px';
+				this._window.style.height = this._wCurrentHeight + 'px';
+			}
+			else
+			{
+				this._content.style.maxHeight = this._contentDefaultHeight + 'px';
+				this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+				this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
+				this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
+				this._content.style.paddingRight = this._contentPaddingRight + 'px';
+				this._window.style.height = this._wDefaultHeight + 'px';
+			}			
+			
+			this._reduceEnlargeButton.className = 'fa fa-angle-up orange';
+		}
+		else
+		{
+			this._reduced = true;
+			
+			if(this._fullscreen)
+			{
+				this._content.style.maxHeight = '0px';
+				this._window.style.bottom = '';
+				this._content.style.paddingTop = '0px';
+				this._content.style.paddingBottom = '0px';
+				this._content.style.paddingLeft = '0px';
+				this._content.style.paddingRight = '0px';
+				this._window.style.height = '';
+			}
+			else
+			{
+				this._content.style.maxHeight = '0px';
+				this._content.style.paddingTop = '0px';
+				this._content.style.paddingBottom = '0px';
+				this._content.style.paddingLeft = '0px';
+				this._content.style.paddingRight = '0px';
+				this._window.style.height = '';
+			}
+			
+			this._reduceEnlargeButton.className = 'fa fa-angle-down orange';
+		}
 	}
 	
 	/**
 	 * Private Methods
 	 */
+	function addTitleClick()
+	{
+		var _this = this;
+
+		/* Place the current window in the foregroud */
+	    WindowJS.allInstances.forEach(function(elem){
+	    	elem._window.style.zIndex = 9999 - elem._instanceId;
+	    });
+	    _this._window.style.zIndex = 9999 + _this._instanceId;
+	}
+
+	function removeTitleClick()
+	{
+		this._titleBar.onclick = null;
+	}
+	
+	function removeDraggable()
+	{
+		var _this = this;
+		
+		document.onmousemove = null;
+		_this._title.onmousedown = null;
+		_this._title.onmouseup = null;
+		
+		_this._title.style.cursor = 'default';
+	}
+	
 	function draggable()
 	{
 		var _this = this;
@@ -176,101 +374,70 @@
 
 	    _this._window.style.top = offsetY + 'px';
 	    _this._window.style.left = offsetX + 'px';
+		
+		/* Save the window new position */
+		this._wDefaultLeft = offsetX;
+		this._wDefaultTop = offsetY;
 	}
 
 	function buildWindow()
 	{
-		var titleBar, controlsContainer, content, contentContainer, docFrag;
+		var _this = this;
+		
+		var controlsContainer, docFrag;
 		
 		docFrag = document.createDocumentFragment();
 		
 		this._window = document.createElement('div');
-		titleBar = document.createElement('div');
+		this._titleBar = document.createElement('div');
 		
 		this._closeButton = document.createElement('i');
-		this._maximizeButton = document.createElement('i');
-		this._minimizeButton = document.createElement('i');
+		this._maximizeMinimizeButton = document.createElement('i');
+		this._reduceEnlargeButton = document.createElement('i');
 		
 		this._title = document.createElement('span');
 		
 		controlsContainer = document.createElement('div');
-		contentContainer = document.createElement('div');
+		this._content = document.createElement('div');
 		
 		/* Controls Container */
-		contentContainer.className = 'w-content';
+		this._content.className = 'w-content';
 		
 		/* Controls Buttons */
 		this._closeButton.className = 'fa fa-close red';
-		this._maximizeButton.className = 'fa fa-external-link blue';
-		this._minimizeButton.className = 'fa fa-angle-down orange';
+		this._maximizeMinimizeButton.className = 'fa fa-expand blue';
+		this._reduceEnlargeButton.className = 'fa fa-angle-up orange';
+		
+		if(this._options.modal)
+		{
+			this._maximizeMinimizeButton.style.display = 'none';
+			this._reduceEnlargeButton.style.display = 'none';
+		}
 		
 		controlsContainer.className = 'w-controls';
+		
 		controlsContainer.appendChild(this._closeButton);
-		controlsContainer.appendChild(this._maximizeButton);
-		controlsContainer.appendChild(this._minimizeButton);
+		controlsContainer.appendChild(this._maximizeMinimizeButton);
+		controlsContainer.appendChild(this._reduceEnlargeButton);
 		
 		/* Window Title */
-		titleBar.className = 'w-title';
+		this._titleBar.className = 'w-title';
 		
 		this._title.innerText = this._options.title;
 	
-		titleBar.appendChild(this._title);
-		titleBar.appendChild(controlsContainer);
+		this._titleBar.appendChild(this._title);
+		this._titleBar.appendChild(controlsContainer);
 		
 		/* Window */
 		this._window.className = 'window';
 				
 		/* Window Content Container */
-		contentContainer.className = 'w-content';
+		this._content.className = 'w-content';
 		
-		if(this._options.ajaxContent)
-		{
-			if(this._options.ajax.url != '')
-			{
-				if(this._options.ajax.method == 'get')
-				{
-					
-					var request = new XMLHttpRequest();
-					request.open('GET', this._options.ajax.url, true);
-
-					request.onload = function (e) {
-						if (request.readyState === 4) {
-							// Check if the get was successful.
-							if (request.status === 200) {
-								contentContainer.innerHTML = request.responseText;	
-								contentContainer.querySelectorAll('script').forEach(function(elem){
-									eval(elem.innerText);
-								});
-							} else {
-								contentContainer.innerHTML = request.statusText;
-							}
-						}
-					};
-					// Catch errors:
-					request.onerror = function (e) {
-						console.error(request.statusText);
-					};
-					
-					request.send(null);
-					
-				}
-				else if(this._options.ajax.method == 'post') /* NEXT STEP ;) */
-				{
-					
-				}
-				else
-				{
-					
-				}
-			}
-		}
-		else
-		{
-			contentContainer.innerHTML = this._options.content;		
-		}
 		
-		this._window.appendChild(titleBar);
-		this._window.appendChild(contentContainer);
+		
+		this._window.appendChild(this._titleBar);
+		this._window.appendChild(this._content);
 		
 		/* If is a modal window */
 		if(this._options.modal)
@@ -295,23 +462,115 @@
 		/* Append document fragment to DOM */
 		document.body.appendChild(docFrag);
 		
-		
 		/* Window Style */
 		var windowStyle = this._window.currentStyle || window.getComputedStyle(this._window);
-		var borderWidth = parseInt(windowStyle.borderTopWidth.substr(0, windowStyle.borderTopWidth.length - 2));
+		var borderWidth = parseInt(windowStyle.borderLeftWidth.substr(0, windowStyle.borderLeftWidth.length - 2)) + parseInt(windowStyle.borderRightWidth.substr(0, windowStyle.borderRightWidth.length - 2));
+		var borderHeight = parseInt(windowStyle.borderTopWidth.substr(0, windowStyle.borderTopWidth.length - 2)) + parseInt(windowStyle.borderBottomWidth.substr(0, windowStyle.borderBottomWidth.length - 2));
 		
-		this._window.style.width = this._options.width - (borderWidth * 2) + 'px';
-		this._window.style.height = this._options.height - (borderWidth * 2) + 'px';
+		this._window.style.width = this._options.width - borderWidth + 'px';
+		this._window.style.height = this._options.height - borderWidth + 'px';
 		this._window.style.left = window.innerWidth / 2 - this._window.offsetWidth / 2 + 'px';
 		this._window.style.top = window.innerHeight / 2 - this._window.offsetHeight / 2 + 'px';
 		/* Place the window in the foreground */
 	    this._window.style.zIndex = this.instances + 9999;
-
+		
+		/* Save the window default values */
+		this._wDefaultWidth = this._options.width - borderWidth;
+		this._wDefaultHeight = this._options.height - borderWidth;
+		this._wDefaultLeft = window.innerWidth / 2 - this._window.offsetWidth / 2;
+		this._wDefaultTop = window.innerHeight / 2 - this._window.offsetHeight / 2;
+		
 		/* Title Style */
 		var titleStyle = this._title.currentStyle || window.getComputedStyle(this._title);
-		var paddingLeft = titleStyle.paddingLeft.substr(0, titleStyle.paddingLeft.length - 2)
+		var paddingLeft = titleStyle.paddingLeft.substr(0, titleStyle.paddingLeft.length - 2);
+		this._title.style.width = this._options.width - paddingLeft - borderWidth - controlsContainer.clientWidth + 'px';
 		
-		this._title.style.width = this._options.width - paddingLeft - (borderWidth * 2) - controlsContainer.clientWidth + 'px';
+		var titleBarStyle = this._titleBar.currentStyle || window.getComputedStyle(this._titleBar);
+		var titleBorderWidth = parseInt(titleBarStyle.borderBottomWidth.substr(0, titleBarStyle.borderBottomWidth.length - 2));
+		this._titleHeight = this._title.offsetHeight + titleBorderWidth;
+
+		/* Content style */
+		var contentContainerStyle =  this._content.currentStyle || window.getComputedStyle(this._content);		
+		this._contentPaddingTop = contentContainerStyle.paddingTop.substr(0, contentContainerStyle.paddingTop.length - 2);
+		this._contentPaddingBottom = contentContainerStyle.paddingBottom.substr(0, contentContainerStyle.paddingBottom.length - 2);
+		this._contentPaddingLeft = contentContainerStyle.paddingLeft.substr(0, contentContainerStyle.paddingLeft.length - 2);
+		this._contentPaddingRight = contentContainerStyle.paddingRight.substr(0, contentContainerStyle.paddingRight.length - 2);
+		
+		this._content.style.maxHeight = this._wDefaultHeight - this._contentPaddingTop - this._contentPaddingBottom - (this._title.offsetHeight + titleBorderWidth) + 'px';
+		this._contentDefaultHeight = this._wDefaultHeight - this._contentPaddingTop - this._contentPaddingBottom - (this._title.offsetHeight + titleBorderWidth);
+		
+		/* Add ajax content */
+		if(this._options.ajaxContent)
+		{
+			if(this._options.ajax.url != '')
+			{
+				var loader = document.createElement('div');
+				var imgLoader = document.createElement('img');
+				
+				/* Loader image attributes */
+				imgLoader.setAttribute('src', './images/w-loader.gif');
+				imgLoader.setAttribute('alt', 'loader');
+				
+				/* Loader attributes */
+				loader.setAttribute('class', 'loader');
+				
+				/* Append img to loader */
+				loader.appendChild(imgLoader);
+				
+				/* Loader style */
+				loader.style.top = this._title.offsetHeight + titleBorderWidth + 'px';
+				
+				/* Append loader element to content container element */
+				this._content.appendChild(loader);
+				
+				if(this._options.ajax.method == 'get')
+				{
+					var request = new XMLHttpRequest();
+					request.open('GET', this._options.ajax.url, true);
+
+					request.onload = function (e) {
+						if (request.readyState === 4) {
+							// Check if the get was successful.
+							if (request.status === 200) {
+								
+								var wrapper = document.createElement('div');
+								wrapper.style.paddingBottom = _this._contentPaddingBottom + 'px';
+								wrapper.innerHTML = request.responseText
+								_this._content.appendChild(wrapper);
+								
+								[].forEach.call(_this._content.querySelectorAll('script'), function(v,i,a) {
+									eval(v.innerText);
+								});
+							} else {
+								_this._content.innerHTML = request.statusText;
+							}
+							
+							_this._content.removeChild(loader);
+						}
+					};
+					// Catch errors:
+					request.onerror = function (e) {
+						console.error(request.statusText);
+					};
+					
+					request.send(null);
+					
+				}
+				else if(this._options.ajax.method == 'post') /* NEXT STEP ;) */
+				{
+					
+				}
+				else
+				{
+					
+				}
+			}
+		}
+		else
+		{
+			this._content.innerHTML = this._options.content;		
+		}
+		
 	}
 	
 	function initEvents()
@@ -319,6 +578,16 @@
 		if(this._closeButton)
 		{
 			this._closeButton.addEventListener('click', this.close.bind(this));
+		}
+		
+		if(this._maximizeMinimizeButton)
+		{
+			this._maximizeMinimizeButton.addEventListener('click', this.maximizeMinimize.bind(this));
+		}
+		
+		if(this._reduceEnlargeButton)
+		{
+			this._reduceEnlargeButton.addEventListener('click', this.reduceEnlarge.bind(this));
 		}
 	}
 	

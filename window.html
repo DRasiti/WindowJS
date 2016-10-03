@@ -6,8 +6,8 @@
 		<meta name="description" content="" />
        	<meta name="keywords" content="" />
 
-       	<link rel="stylesheet" type="text/css" href="css/window.css" />
-       	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
+       	<link rel="stylesheet" type="text/css" href="./css/window.css" />
+       	<link rel="stylesheet" type="text/css" href="./css/font-awesome.min.css" />
 	</head>
 
 	<body>
@@ -17,28 +17,111 @@
 
 		<br/>
 		
-		<a id="open" class="btn"><span class="fa fa-external-link"></span> window</a>
+		<a id="open1" class="btn"><span class="fa fa-external-link"></span> window 1</a>
+		<a id="open2" class="btn"><span class="fa fa-external-link"></span> window 2</a>
+		<a id="open3" class="btn"><span class="fa fa-external-link"></span> window 3</a>
+		<a id="open4" class="btn"><span class="fa fa-external-link"></span> window 4</a>
+		<a id="open5" class="btn"><span class="fa fa-external-link"></span> window 5</a>
 		
 		<div id="result"></div>
 		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-		<script type="text/javascript" src="window.js"></script>
+		<script type="text/javascript" src="./window.js"></script>
 		<script>
-			document.getElementById('open').addEventListener('click', function(){
-				var w = new WindowJS({
-					width: 750,
-					height: 300,
-					title: 'Window 1',
+			var w1 = w2 = w3 = w4 = w5 = null;
+
+			document.getElementById('open1').addEventListener('click', function(){
+				var options = {
+					width: 600,
+					height: 270,
+					title: 'Window 1 !',
 					modal: false,
 					draggable: true,
 					ajaxContent: true,
 					ajax: {
-						url: 'simple.html',
+						url: './simple.html',
 						method: 'get'
+					},
+					onClose: function(){
+						w1 = null;
 					}
-				});
-				w.open();
+				};
+				
+				w1 = w1 instanceof WindowJS ? w1 : new WindowJS(options);
 			});
+
+
+			document.getElementById('open2').addEventListener('click', function(){
+				var options = {
+					width: 600,
+					height: 270,
+					title: 'Window 2 !',
+					modal: false,
+					draggable: true,
+					content: '<h1>Window 2</h1><p>Le contenu de la fenêtre 2</p>',
+					onClose: function(){
+						w2 = null;
+					}
+				};
+				
+				w2 = w2 instanceof WindowJS ? w2 : new WindowJS(options);
+			});
+
+
+			document.getElementById('open3').addEventListener('click', function(){
+				var options = {
+					width: 600,
+					height: 270,
+					title: 'Window 3 !',
+					modal: false,
+					draggable: true,
+					content: '<h1>Window 3</h1><p>Le contenu de la fenêtre 3</p>',
+					onClose: function(){
+						w3 = null;
+					}
+				};
+				
+				w3 = w3 instanceof WindowJS ? w3 : new WindowJS(options);
+			});
+
+
+			document.getElementById('open4').addEventListener('click', function(){
+				var options = {
+					width: 600,
+					height: 270,
+					title: 'Window 4 !',
+					modal: false,
+					draggable: true,
+					content: '<h1>Window 4</h1><p>Le contenu de la fenêtre 4</p>',
+					onClose: function(){
+						w4 = null;
+					}
+				};
+				
+				w4 = w4 instanceof WindowJS ? w4 : new WindowJS(options);
+			});
+
+
+			document.getElementById('open5').addEventListener('click', function(){
+				var options = {
+					width: 600,
+					height: 270,
+					title: 'Window 5 !',
+					modal: false,
+					draggable: true,
+					content: '<h1>Window 5</h1><p>Le contenu de la fenêtre 5</p>',
+					onClose: function(){
+						w5 = null;
+					}
+				};
+				
+				w5 = w5 instanceof WindowJS ? w5 : new WindowJS(options);
+			});
+
+			function closeWindow()
+			{
+				this.w = null;
+			}
 		</script>
 	</body>
 </html>
