@@ -1,19 +1,17 @@
 ;(function(){
-
-	var dragOffset = {
-		x : 0,
-		y : 0
-	};
-
+	
 	this.WindowJS = function(){
+		
 		this._options = null;
 		this._window = null;
 		this._title = null;
 		this._titleBar = null;
 		this._content = null;
 		this._overlay = null;
+		this._controlsContainer = null;
 		this._closeButton = null;
 		this._maximizeMinimizeButton = null;
+		this._showHideContentButton = null;
 		this._reduceEnlargeButton = null;
 		
 		this._wDefaultWidth = null;
@@ -28,35 +26,72 @@
 		this._wCurrentRight = null;
 		this._wCurrentBottom = null;
 		
-		this._contentPaddingTop = null;
-		this._contentPaddingBottom = null;
-		this._contentPaddingLeft = null;
-		this._contentPaddingRight = null;
+		this._contentDefaultPaddingTop = null;
+		this._contentDefaultPaddingBottom = null;
+		this._contentDefaultPaddingLeft = null;
+		this._contentDefaultPaddingRight = null;
 		
 		this._fullscreen = false;
+		this._hidden = false;
 		this._reduced = false;
 		
+		this._windowBorderWidth = null;
+		this._windowBorderHeight = null;
+
 		this._titleHeight = null;
+		this._titleInnerHeight = null;
+		
+		this._titleBorderWidth = null;
+
 		this._contentDefaultHeight = null;
 		this._contentCurrentHeight = null;
+		
+		this._dragOffset = {
+			startX : 0,
+			startY : 0,
+			endX : 0,
+			endY : 0
+		};
+		
+		this._defaultResizable = null;
+		this._resizeN = null;
+		this._resizeE = null;
+		this._resizeS = null;
+		this._resizeW = null;
+		this._resizeNE = null;
+		this._resizeSE = null;
+		this._resizeSW = null;
+		this._resizeNW = null;
+		this._movements = {
+			x : 0,
+			y : 0
+		};
+		this._windowStartWidth = null;
+		this._windowStartHeight = null;
+		this._windowStartTop = null;
+		this._windowStartLeft = null;
 		
 		this._instanceId;
 		
 		var defaults = {
 			width: 700,
-			height: 500,
+			height: 550,
+			minWidth: 225,
+			minHeight: 100,
 			title: 'Title Here !',
 			modal: false,
-			draggable: false,
+			draggable: true,
+			onDragOpacity: 85,
+			resizable: true,
 			controls: true,
+			reducedWidth: 250,
+			maximized: false,
 			overlayColor: '#ffffff', /* #3fd or #33ffdd */
 			overlayOpacity: 90,
+			contentPadding: true,
 			content: 'Content of window Here !',
-			ajaxContent: false,
-			ajax: {
-				url : '',
-				method : 'get'
-			},
+			ajaxContent: null, /* { url: '', method: 'get' } */
+			iframe: null,
 			onClose: null
 		};
 		
@@ -76,6 +111,18 @@
 	     */
 		WindowJS.prototype.instances = WindowJS.prototype.instances ? WindowJS.prototype.instances + 1 : 1;
 
+		if(WindowJS.prototype.reducedWindowsContainer)
+		{
+			WindowJS.prototype.reducedWindowsContainer = WindowJS.prototype.reducedWindowsContainer;
+		}
+		else
+		{
+			var reducedWindowsContainer = document.createElement('div');
+			reducedWindowsContainer.className = 'w-reduced-container';
+			WindowJS.prototype.reducedWindowsContainer = reducedWindowsContainer;
+			document.body.appendChild(WindowJS.prototype.reducedWindowsContainer);
+		}
+
 		this._instanceId = WindowJS.prototype.instances;
 
 		/*
@@ -83,28 +130,48 @@
 		 */
 		WindowJS.allInstances.push(this);
 		
+		this._defaultResizable = this._options.resizable;
+		
+		if(!this._options.contentPadding)
+		{
+			this._contentDefaultPaddingTop = 0;
+			this._contentDefaultPaddingBottom = 0;
+			this._contentDefaultPaddingLeft = 0;
+			this._contentDefaultPaddingRight = 0;
+		}
 		
 		buildWindow.call(this);
 		initEvents.call(this);
+
 		if(this._options.draggable)
 		{
 			draggable.call(this);
 		}
-	}
+		
+		if(this._options.width < this._options.minWidth)
+		{
+			this._options.width = this._options.minWidth;
+		}
+		if(this._options.height < this._options.minHeight)
+		{
+			this._options.height = this._options.minHeight;
+		}
+		
+		if(this._options.maximized)
+		{
+			this._fullscreen = false;
+			this.maximizeMinimize.call(this);
+		}
 
+		console.dir(this);
+	}
+	
+	/* Global attribute to all WIndowJS instances */
 	WindowJS.allInstances = [];
 	
 	/**
 	 * Public Methods
 	 */
-	/*WindowJS.prototype.open = function(){
-		buildWindow.call(this);
-		initEvents.call(this);
-		if(this._options.draggable)
-		{
-			draggable.call(this);
-		}
-	}*/
 	WindowJS.prototype.close = function(){
 		this._window.parentNode.removeChild(this._window);
 
@@ -121,16 +188,27 @@
 		var newArray = WindowJS.allInstances.filter(function(obj) {
 			return listToDelete.indexOf(obj._instanceId) === -1;
 		});
-
 		WindowJS.allInstances = newArray;
+
+		/* Correct the ids of the rest of instances */
+		WindowJS.allInstances.forEach(function(elem){
+			if(elem._instanceId > this._instanceId)
+			{
+				elem._instanceId = this._instanceId;
+				this._instanceId = this._instanceId + 1;
+			}
+	    	
+	    });
 
 		if(this._options.onClose !== null && typeof this._options.onClose === 'function')
 		{
 			this._options.onClose();
 		}
+
+		console.dir(this);
+
 	}
 	WindowJS.prototype.maximizeMinimize = function(){
-		var contentStyle, ccPaddingTop, ccPaddingBottom, windowStyle, borderWidth, borderHeight, windowHeight;
 		
 		if(this._fullscreen)
 		{
@@ -143,7 +221,7 @@
 			this._window.style.right = '';
 			this._window.style.bottom = '';
 			
-			this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+			this._content.style.paddingTop = this._contentPaddingTop + 'px';
 			this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
 			this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
 			this._content.style.paddingRight = this._contentPaddingRight + 'px';
@@ -151,10 +229,12 @@
 			if(this._options.draggable)
 			{
 				draggable.call(this);
-				removeTitleClick.call(this);
 			}			
 			
-			this._maximizeMinimizeButton.className = 'fa fa-expand blue';
+			this._maximizeMinimizeButton.className = 'icon-maximize blue';
+			
+			// Resizable on normal screen
+			this._options.resizable = true;
 		}
 		else
 		{
@@ -167,7 +247,7 @@
 			this._window.style.right = '2px';
 			this._window.style.bottom = '2px';
 			
-			this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+			this._content.style.paddingTop = this._contentPaddingTop + 'px';
 			this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
 			this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
 			this._content.style.paddingRight = this._contentPaddingRight + 'px';
@@ -175,68 +255,59 @@
 			if(this._options.draggable)
 			{
 				removeDraggable.call(this);
-				this._titleBar.onclick = addTitleClick.bind(this);
 			}
 			
-			this._maximizeMinimizeButton.className = 'fa fa-compress blue';
+			this._maximizeMinimizeButton.className = 'icon-minimize blue';
+			
+			// No resize on fullscreen
+			this._options.resizable = false;
 		}
 		
-		contentStyle =  this._content.currentStyle || window.getComputedStyle(this._content);
-		ccPaddingTop = contentStyle.paddingTop.substr(0, contentStyle.paddingTop.length - 2);
-		ccPaddingBottom = contentStyle.paddingBottom.substr(0, contentStyle.paddingBottom.length - 2);
-		
-		windowStyle = this._window.currentStyle || window.getComputedStyle(this._window);
-		borderWidth = parseInt(windowStyle.borderLeftWidth.substr(0, windowStyle.borderLeftWidth.length - 2)) + parseInt(windowStyle.borderRightWidth.substr(0, windowStyle.borderRightWidth.length - 2));
-		borderHeight = parseInt(windowStyle.borderTopWidth.substr(0, windowStyle.borderTopWidth.length - 2)) + parseInt(windowStyle.borderBottomWidth.substr(0, windowStyle.borderBottomWidth.length - 2));
-		windowHeight = parseInt(windowStyle.height.substr(0, windowStyle.height.length - 2));
-		
-		/* Current window size */
-		this._wCurrentWidth = parseInt(windowStyle.width.substr(0, windowStyle.width.length - 2));
-		this._wCurrentHeight = parseInt(windowStyle.height.substr(0, windowStyle.height.length - 2));
-		this._wCurrentTop = parseInt(windowStyle.top.substr(0, windowStyle.top.length - 2));
-		this._wCurrentLeft = parseInt(windowStyle.left.substr(0, windowStyle.left.length - 2));
-		this._wCurrentRight = parseInt(windowStyle.right.substr(0, windowStyle.right.length - 2));
-		this._wCurrentBottom = parseInt(windowStyle.bottom.substr(0, windowStyle.bottom.length - 2));
-		
-		this._content.style.maxHeight = windowHeight - this._titleHeight - ccPaddingTop - ccPaddingBottom + 'px';
-		
-		/* Current content size */
-		this._contentCurrentHeight = parseInt(contentStyle.maxHeight.substr(0, contentStyle.maxHeight.length - 2));
+		applyAllWindowElementsStyles.call(this);
 		
 		/* Reset reduce values */
-		this._reduced = false;
-		this._reduceEnlargeButton.className = 'fa fa-angle-up orange';
+		this._hidden = false;
+		this._showHideContentButton.className = 'icon-hide orange';
+		
+		// Rezizable window depend of "this._options.resizable" value
+		resizableWindow.call(this);
 	}
-	WindowJS.prototype.reduceEnlarge = function(){
-		if(this._reduced)
+	WindowJS.prototype.showHideContent = function(){
+		if(this._hidden)
 		{
-			this._reduced = false;
+			this._hidden = false;
 			
 			if(this._fullscreen)
 			{
-				this._content.style.maxHeight = this._contentCurrentHeight + 'px';
+				this._content.style.maxHeight = this._contentDefaultHeight + 'px';
 				this._window.style.bottom = '2px';
-				this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+				this._content.style.paddingTop = this._contentPaddingTop + 'px';
 				this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
 				this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
 				this._content.style.paddingRight = this._contentPaddingRight + 'px';
 				this._window.style.height = this._wCurrentHeight + 'px';
+				
+				// Resizable when the window is enlarged
+				this._options.resizable = false;
 			}
 			else
 			{
 				this._content.style.maxHeight = this._contentDefaultHeight + 'px';
-				this._content.style.paddingTop = this._contentPaddingBottom + 'px';
+				this._content.style.paddingTop = this._contentPaddingTop + 'px';
 				this._content.style.paddingBottom = this._contentPaddingBottom + 'px';
 				this._content.style.paddingLeft = this._contentPaddingLeft + 'px';
 				this._content.style.paddingRight = this._contentPaddingRight + 'px';
 				this._window.style.height = this._wDefaultHeight + 'px';
+				
+				// Resizable when the window is enlarged
+				this._options.resizable = true;
 			}			
 			
-			this._reduceEnlargeButton.className = 'fa fa-angle-up orange';
+			this._showHideContentButton.className = 'icon-hide orange';
 		}
 		else
 		{
-			this._reduced = true;
+			this._hidden = true;
 			
 			if(this._fullscreen)
 			{
@@ -258,14 +329,137 @@
 				this._window.style.height = '';
 			}
 			
-			this._reduceEnlargeButton.className = 'fa fa-angle-down orange';
+			this._showHideContentButton.className = 'icon-show orange';
+			
+			// No resize when the window is reduced
+			this._options.resizable = false;
 		}
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		resizableWindow.call(this);
 	}
-	
+	WindowJS.prototype.reduceEnlarge = function()
+	{
+		if(this._reduced)
+		{
+			this._reduced = false;
+
+			this._window.style.width = this._wDefaultWidth + 'px';
+			this._window.style.height = this._wDefaultHeight + 'px';
+			this._window.style.top = this._wDefaultTop + 'px';
+			this._window.style.left = this._wDefaultLeft + 'px';
+			this._window.style.position = '';
+			this._window.style.overflow = '';
+			this._window.style.display = '';
+			this._window.style.marginLeft = '';
+			this._window.style.right = '';
+			this._window.style.bottom = '';
+			
+			if(this._options.draggable)
+			{
+				draggable.call(this);
+			}
+			
+			document.body.appendChild(this._window);
+			this._options.resizable = true;
+			
+			this._reduceEnlargeButton.className = 'icon-reduce orange';
+		}
+		else
+		{
+			this._reduced = true;
+			
+			this._window.style.width = parseInt(this._options.reducedWidth) + 'px';
+			this._window.style.height = this._titleInnerHeight + 'px';
+			this._window.style.top = 'auto';
+			this._window.style.left = 'auto';
+			this._window.style.position = 'relative';
+			this._window.style.overflow = 'hidden';
+			this._window.style.display = 'inline-block';
+			this._window.style.marginLeft = '5px';
+			
+			if(this._options.draggable)
+			{
+				removeDraggable.call(this);
+			}
+						
+			WindowJS.prototype.reducedWindowsContainer.appendChild(this._window);
+			this._options.resizable = false;
+			
+			this._reduceEnlargeButton.className = 'icon-enlarge green';
+		}
+
+		applyAllWindowElementsStyles.call(this);
+		
+		showWindowInInitialStatus.call(this);
+		
+		resizableWindow.call(this);
+		
+		showCorrectControls.call(this);
+	}
+
 	/**
 	 * Private Methods
 	 */
-	function addTitleClick()
+	function showCorrectControls()
+	{
+		if(this._options.modal)
+		{
+			this._reduceEnlargeButton.style.display = 'none';
+		}
+		else if(this._reduced)
+		{
+			this._maximizeMinimizeButton.style.display = 'none';
+			this._showHideContentButton.style.display = 'none';
+		}
+		else
+		{
+			this._maximizeMinimizeButton.style.display = '';
+			this._showHideContentButton.style.display = '';
+			this._reduceEnlargeButton.style.display = '';
+		}
+	}
+	
+	function showWindowInInitialStatus()
+	{
+		if(!this._reduced)
+		{
+			if(this._fullscreen && this._hidden)
+			{
+				this._hidden = false;
+				this._fullscreen = false;
+				this.maximizeMinimize.call(this);
+				this.showHideContent.call(this);
+			}
+			else if(this._fullscreen)
+			{
+				this._fullscreen = false;
+				this.maximizeMinimize.call(this);
+			}
+			else if(this._hidden)
+			{
+				this._hidden = false;
+				this.showHideContent.call(this);
+			}
+			else
+			{
+				if(!this._fullscreen)
+				{
+					this._fullscreen = true;
+					this.maximizeMinimize.call(this);
+				}
+				else if(!this._hidden)
+				{
+					this._hidden = true;
+					this.showHideContent.call(this);
+					
+				}
+			}
+		}
+	}
+	
+	function selectWindow(e)
 	{
 		var _this = this;
 
@@ -276,9 +470,9 @@
 	    _this._window.style.zIndex = 9999 + _this._instanceId;
 	}
 
-	function removeTitleClick()
+	function unselectWindow()
 	{
-		this._titleBar.onclick = null;
+		this._window.onmousedown = null;
 	}
 	
 	function removeDraggable()
@@ -297,7 +491,7 @@
 		var _this = this;
 
 
-		this._title.style.cursor = 'move';
+		this._title.style.cursor = 'grab';
 
 		this._title.onmousedown = mouseDown.bind(_this);
 		this._title.onmouseup = mouseUp.bind(_this);
@@ -308,17 +502,20 @@
 		var _this = this;
 
 	    document.onmousemove = mouseMove.bind(_this);
-
+		this._title.style.cursor = 'grabbing';
+	    
 	    e.pageX = e.pageX || e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
 	    e.pageY = e.pageY || e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
-	    dragOffset.x = e.pageX - _this._window.offsetLeft;
-	    dragOffset.y = e.pageY - _this._window.offsetTop;
+	    this._dragOffset.x = e.pageX - _this._window.offsetLeft;
+	    this._dragOffset.y = e.pageY - _this._window.offsetTop;
 
 	    /* Place the current window in the foregroud */
-	    WindowJS.allInstances.forEach(function(elem){
+	    selectWindow.call(this);
+
+	    /*WindowJS.allInstances.forEach(function(elem){
 	    	elem._window.style.zIndex = 9999 - elem._instanceId;
 	    });
-	    _this._window.style.zIndex = 9999 + _this._instanceId;
+	    _this._window.style.zIndex = 9999 + _this._instanceId;*/
 	}
 
 	function mouseUp()
@@ -326,6 +523,7 @@
 		var _this = this;
 
 	    document.onmousemove = null;
+	    this._title.style.cursor = 'grab';
 
 	    /* Reset the window opacity when moving is stopped */
 		_this._window.style.opacity = '1';
@@ -333,10 +531,8 @@
 
 	function mouseMove(e)
 	{
-		var _this = this;
-
 		/* Reduce the window opacity during moving */
-		_this._window.style.opacity = '0.75';
+		this._window.style.opacity = cssOpacity(this._options.onDragOpacity);
 
 	    e.pageX = e.pageX || e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
 	    e.pageY = e.pageY || e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
@@ -344,100 +540,304 @@
 	    var offsetX, offsetY;
 
 	    // left/right constraints
-	    if (e.pageX - dragOffset.x < window.pageXOffset)
+	    if (e.pageX - this._dragOffset.x < 0)
 	    {
-	        offsetX = window.pageXOffset;
+	        offsetX = 0;
 	    }
-	    else if (e.pageX - dragOffset.x + _this._window.offsetWidth > window.innerWidth)
+	    else if (e.pageX - this._dragOffset.x + this._window.offsetWidth > window.innerWidth)
 	    {
-	        offsetX = window.innerWidth - _this._window.offsetWidth;
+	        offsetX = window.innerWidth - this._window.offsetWidth;
 	    }
 	    else
 	    {
-	        offsetX = e.pageX - dragOffset.x;
+	        offsetX = e.pageX - this._dragOffset.x;
 	    }
 	     
 	    // top/bottom constraints
-	    if (e.pageY - dragOffset.y < window.pageYOffset)
+	    if (e.pageY - this._dragOffset.y < 0)
 	    {
-	        offsetY = window.pageYOffset;
+	        offsetY = 0;
 	    }
-	    else if (e.pageY - dragOffset.y + _this._window.offsetHeight > window.innerHeight)
+	    else if (e.pageY - this._dragOffset.y + this._window.offsetHeight > window.innerHeight)
 	    {
-	        offsetY = window.innerHeight - _this._window.offsetHeight;
+	        offsetY = window.innerHeight - this._window.offsetHeight;
 	    }
 	    else
 	    {
-	        offsetY = e.pageY - dragOffset.y;
+	        offsetY = e.pageY - this._dragOffset.y;
 	    }  
 
 
-	    _this._window.style.top = offsetY + 'px';
-	    _this._window.style.left = offsetX + 'px';
+	    this._window.style.top = offsetY + 'px';
+	    this._window.style.left = offsetX + 'px';
 		
 		/* Save the window new position */
 		this._wDefaultLeft = offsetX;
 		this._wDefaultTop = offsetY;
 	}
-
+	
+	
+	function initResizeValues(e)
+	{
+		this._movements.startX = e.pageX || e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+		this._movements.startY = e.pageY || e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+		
+		var windowStyle = this._window.currentStyle || window.getComputedStyle(this._window);
+		this._windowStartWidth = parseInt(windowStyle.width, 10);
+		this._windowStartHeight = parseInt(windowStyle.height, 10);
+		this._windowStartTop = parseInt(windowStyle.top, 10);
+		this._windowStartLeft = parseInt(windowStyle.left, 10);
+		
+		document.documentElement.onmouseup = resizeMouseUp.bind(this);
+	}
+	
+	function resizeNMouseDown(e)
+	{
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeNMouseMove.bind(this);
+	}
+	function resizeNMouseMove(e)
+	{
+		e.pageY = e.pageY || e.clientY;
+		var height = (this._windowStartHeight - e.pageY + this._movements.startY);
+		
+		if(height < this._options.minHeight)
+		{
+			height = this._options.minHeight;
+		}
+		
+		this._window.style.height = height + 'px';
+		this._window.style.top = (this._windowStartTop + (this._windowStartHeight - height)) + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultHeight = height;
+		this._wDefaultTop = (this._windowStartTop + (this._windowStartHeight - height));
+	}
+	
+	function resizeEMouseDown(e)
+	{
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeEMouseMove.bind(this);
+	}
+	function resizeEMouseMove(e)
+	{
+		e.pageX = e.pageX || e.clientX;
+		var width = (this._windowStartWidth + e.pageX - this._movements.startX);
+		
+		if(width < this._options.minWidth)
+		{
+			width = this._options.minWidth;
+		}
+		
+		this._window.style.width = width + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultWidth = width;
+	}
+	
+	function resizeSMouseDown(e)
+	{
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeSMouseMove.bind(this);
+	}
+	function resizeSMouseMove(e)
+	{
+		e.pageY = e.pageY || e.clientY;
+		var height = (this._windowStartHeight + e.pageY - this._movements.startY);
+		
+		if(height < this._options.minHeight)
+		{
+			height = this._options.minHeight;
+		}
+		
+		this._window.style.height = height + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultHeight = height;
+	}
+	
+	function resizeWMouseDown(e)
+	{
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeWMouseMove.bind(this);
+	}
+	function resizeWMouseMove(e)
+	{
+		e.pageX = e.pageX || e.clientX;
+		var width = (this._windowStartWidth - e.pageX + this._movements.startX);
+		
+		if(width < this._options.minWidth)
+		{
+			width = this._options.minWidth;
+		}	
+		
+		this._window.style.width = width + 'px';
+		
+		this._window.style.left = (this._windowStartLeft + (this._windowStartWidth - width)) + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultWidth = width;
+		this._wDefaultLeft = (this._windowStartLeft + (this._windowStartWidth - width));
+	}
+	
+	function resizeNEMouseDown(e)
+	{
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeNEMouseMove.bind(this);
+	}
+	function resizeNEMouseMove(e)
+	{
+		e.pageX = e.pageX || e.clientX;
+		e.pageY = e.pageY || e.clientY;
+		
+		var width = (this._windowStartWidth + e.pageX - this._movements.startX);
+		var height = (this._windowStartHeight - e.pageY + this._movements.startY);
+		
+		if(width < this._options.minWidth)
+		{
+			width = this._options.minWidth;
+		}
+		if(height < this._options.minHeight)
+		{
+			height = this._options.minHeight;
+		}
+		
+		this._window.style.width = width + 'px';
+		this._window.style.height = height + 'px';
+		
+		this._window.style.top = (this._windowStartTop + (this._windowStartHeight - height)) + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultWidth = width;
+		this._wDefaultHeight = height;
+		this._wDefaultTop = (this._windowStartTop + (this._windowStartHeight - height));
+	}
+	
+	function resizeNWMouseDown(e)
+	{
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeNWMouseMove.bind(this);
+	}
+	function resizeNWMouseMove(e)
+	{
+		e.pageX = e.pageX || e.clientX;
+		e.pageY = e.pageY || e.clientY;
+		var width = (this._windowStartWidth - e.pageX + this._movements.startX);
+		var height = (this._windowStartHeight - e.pageY + this._movements.startY);
+		
+		if(width < this._options.minWidth)
+		{
+			width = this._options.minWidth;
+		}
+		if(height < this._options.minHeight)
+		{
+			height = this._options.minHeight;
+		}
+		
+		this._window.style.width = width + 'px';
+		this._window.style.height = height + 'px';
+		
+		this._window.style.top = (this._windowStartTop + (this._windowStartHeight - height)) + 'px';
+		this._window.style.left = (this._windowStartLeft + (this._windowStartWidth - width)) + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultWidth = width;
+		this._wDefaultHeight = height;
+		this._wDefaultTop = (this._windowStartTop + (this._windowStartHeight - height));
+		this._wDefaultLeft = (this._windowStartLeft + (this._windowStartWidth - width));
+	}
+	
+	function resizeSEMouseDown(e)
+	{		
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeSEMouseMove.bind(this);
+	}
+	function resizeSEMouseMove(e)
+	{
+		e.pageX = e.pageX || e.clientX;
+		e.pageY = e.pageY || e.clientY;
+		var width = (this._windowStartWidth + e.pageX - this._movements.startX);
+		var height = (this._windowStartHeight + e.pageY - this._movements.startY);
+		
+		if(width < this._options.minWidth)
+		{
+			width = this._options.minWidth;
+		}
+		if(height < this._options.minHeight)
+		{
+			height = this._options.minHeight;
+		}
+		
+		this._window.style.width = width + 'px';
+		this._window.style.height = height + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultWidth = width;
+		this._wDefaultHeight = height;
+	}
+	
+	function resizeSWMouseDown(e)
+	{
+		initResizeValues.call(this, e);
+		
+		document.documentElement.onmousemove = resizeSWMouseMove.bind(this);
+	}
+	function resizeSWMouseMove(e)
+	{
+		e.pageX = e.pageX || e.clientX;
+		e.pageY = e.pageY || e.clientY;
+		var width = (this._windowStartWidth - e.pageX + this._movements.startX);
+		var height = (this._windowStartHeight + e.pageY - this._movements.startY);
+		
+		if(width < this._options.minWidth)
+		{
+			width = this._options.minWidth;
+		}
+		if(height < this._options.minHeight)
+		{
+			height = this._options.minHeight;
+		}
+		
+		this._window.style.width = width + 'px';
+		this._window.style.height = height + 'px';
+		
+		this._window.style.left = (this._windowStartLeft + (this._windowStartWidth - width)) + 'px';
+		
+		applyAllWindowElementsStyles.call(this);
+		
+		this._wDefaultWidth = width;
+		this._wDefaultHeight = height;
+		this._wDefaultLeft = (this._windowStartLeft + (this._windowStartWidth - width));
+	}
+	
+	function resizeMouseUp()
+	{		
+		document.documentElement.onmousemove = null;
+		document.documentElement.onmouseup = null;
+	}
+	
+	
 	function buildWindow()
 	{
 		var _this = this;
 		
-		var controlsContainer, docFrag;
+		var docFrag;
 		
 		docFrag = document.createDocumentFragment();
-		
-		this._window = document.createElement('div');
-		this._titleBar = document.createElement('div');
-		
-		this._closeButton = document.createElement('i');
-		this._maximizeMinimizeButton = document.createElement('i');
-		this._reduceEnlargeButton = document.createElement('i');
-		
-		this._title = document.createElement('span');
-		
-		controlsContainer = document.createElement('div');
-		this._content = document.createElement('div');
-		
-		/* Controls Container */
-		this._content.className = 'w-content';
-		
-		/* Controls Buttons */
-		this._closeButton.className = 'fa fa-close red';
-		this._maximizeMinimizeButton.className = 'fa fa-expand blue';
-		this._reduceEnlargeButton.className = 'fa fa-angle-up orange';
-		
-		if(this._options.modal)
-		{
-			this._maximizeMinimizeButton.style.display = 'none';
-			this._reduceEnlargeButton.style.display = 'none';
-		}
-		
-		controlsContainer.className = 'w-controls';
-		
-		controlsContainer.appendChild(this._closeButton);
-		controlsContainer.appendChild(this._maximizeMinimizeButton);
-		controlsContainer.appendChild(this._reduceEnlargeButton);
-		
-		/* Window Title */
-		this._titleBar.className = 'w-title';
-		
-		this._title.innerText = this._options.title;
-	
-		this._titleBar.appendChild(this._title);
-		this._titleBar.appendChild(controlsContainer);
-		
-		/* Window */
-		this._window.className = 'window';
-				
-		/* Window Content Container */
-		this._content.className = 'w-content';
-		
-		
-		
-		this._window.appendChild(this._titleBar);
-		this._window.appendChild(this._content);
 		
 		/* If is a modal window */
 		if(this._options.modal)
@@ -455,54 +855,37 @@
 			/* Document fragement */
 			docFrag.appendChild(this._overlay);
 		}
+		
+		/* Assemble the window parts */
+		buildWindowControlsPart.call(this);
+		buildTitleBarPart.call(this);
+		buildWindowContentPart.call(this);
+		buildWindowPart.call(this);
 
-		/* Document fragement */
+		/* Append window to DocumentFragement */
 		docFrag.appendChild(this._window);
-		
-		/* Append document fragment to DOM */
-		document.body.appendChild(docFrag);
-		
-		/* Window Style */
-		var windowStyle = this._window.currentStyle || window.getComputedStyle(this._window);
-		var borderWidth = parseInt(windowStyle.borderLeftWidth.substr(0, windowStyle.borderLeftWidth.length - 2)) + parseInt(windowStyle.borderRightWidth.substr(0, windowStyle.borderRightWidth.length - 2));
-		var borderHeight = parseInt(windowStyle.borderTopWidth.substr(0, windowStyle.borderTopWidth.length - 2)) + parseInt(windowStyle.borderBottomWidth.substr(0, windowStyle.borderBottomWidth.length - 2));
-		
-		this._window.style.width = this._options.width - borderWidth + 'px';
-		this._window.style.height = this._options.height - borderWidth + 'px';
-		this._window.style.left = window.innerWidth / 2 - this._window.offsetWidth / 2 + 'px';
-		this._window.style.top = window.innerHeight / 2 - this._window.offsetHeight / 2 + 'px';
-		/* Place the window in the foreground */
-	    this._window.style.zIndex = this.instances + 9999;
-		
-		/* Save the window default values */
-		this._wDefaultWidth = this._options.width - borderWidth;
-		this._wDefaultHeight = this._options.height - borderWidth;
-		this._wDefaultLeft = window.innerWidth / 2 - this._window.offsetWidth / 2;
-		this._wDefaultTop = window.innerHeight / 2 - this._window.offsetHeight / 2;
-		
-		/* Title Style */
-		var titleStyle = this._title.currentStyle || window.getComputedStyle(this._title);
-		var paddingLeft = titleStyle.paddingLeft.substr(0, titleStyle.paddingLeft.length - 2);
-		this._title.style.width = this._options.width - paddingLeft - borderWidth - controlsContainer.clientWidth + 'px';
-		
-		var titleBarStyle = this._titleBar.currentStyle || window.getComputedStyle(this._titleBar);
-		var titleBorderWidth = parseInt(titleBarStyle.borderBottomWidth.substr(0, titleBarStyle.borderBottomWidth.length - 2));
-		this._titleHeight = this._title.offsetHeight + titleBorderWidth;
 
-		/* Content style */
-		var contentContainerStyle =  this._content.currentStyle || window.getComputedStyle(this._content);		
-		this._contentPaddingTop = contentContainerStyle.paddingTop.substr(0, contentContainerStyle.paddingTop.length - 2);
-		this._contentPaddingBottom = contentContainerStyle.paddingBottom.substr(0, contentContainerStyle.paddingBottom.length - 2);
-		this._contentPaddingLeft = contentContainerStyle.paddingLeft.substr(0, contentContainerStyle.paddingLeft.length - 2);
-		this._contentPaddingRight = contentContainerStyle.paddingRight.substr(0, contentContainerStyle.paddingRight.length - 2);
+		/* Append DocumentFragment to DOM (body) */
+		document.body.appendChild(docFrag);		
 		
-		this._content.style.maxHeight = this._wDefaultHeight - this._contentPaddingTop - this._contentPaddingBottom - (this._title.offsetHeight + titleBorderWidth) + 'px';
-		this._contentDefaultHeight = this._wDefaultHeight - this._contentPaddingTop - this._contentPaddingBottom - (this._title.offsetHeight + titleBorderWidth);
+		if(this._options.contentPadding)
+		{
+			var contentContainerStyle =  this._content.currentStyle || window.getComputedStyle(this._content);		
+			this._contentDefaultPaddingTop = parseInt(contentContainerStyle.paddingTop, 10);
+			this._contentDefaultPaddingBottom = parseInt(contentContainerStyle.paddingBottom, 10);
+			this._contentDefaultPaddingLeft = parseInt(contentContainerStyle.paddingLeft, 10);
+			this._contentDefaultPaddingRight = parseInt(contentContainerStyle.paddingRight, 10);
+		}
+		
+		/* Apply styles to all window elements and save their default values */
+		applyAllWindowStyles.call(this);
+		
+		
 		
 		/* Add ajax content */
-		if(this._options.ajaxContent)
+		if(this._options.ajaxContent !== null && typeof this._options.ajaxContent === 'object')
 		{
-			if(this._options.ajax.url != '')
+			if(this._options.ajaxContent.url != '')
 			{
 				var loader = document.createElement('div');
 				var imgLoader = document.createElement('img');
@@ -518,19 +901,19 @@
 				loader.appendChild(imgLoader);
 				
 				/* Loader style */
-				loader.style.top = this._title.offsetHeight + titleBorderWidth + 'px';
+				loader.style.top = this._title.offsetHeight + this._titleBorderWidth + 'px';
 				
 				/* Append loader element to content container element */
 				this._content.appendChild(loader);
 				
-				if(this._options.ajax.method == 'get')
+				if(this._options.ajaxContent.method == 'get')
 				{
 					var request = new XMLHttpRequest();
-					request.open('GET', this._options.ajax.url, true);
+					request.open('GET', this._options.ajaxContent.url, true);
 
 					request.onload = function (e) {
 						if (request.readyState === 4) {
-							// Check if the get was successful.
+							/* Check if the get was successful. */
 							if (request.status === 200) {
 								
 								var wrapper = document.createElement('div');
@@ -548,46 +931,296 @@
 							_this._content.removeChild(loader);
 						}
 					};
-					// Catch errors:
+					/* Catch errors */
 					request.onerror = function (e) {
 						console.error(request.statusText);
 					};
 					
 					request.send(null);
-					
 				}
-				else if(this._options.ajax.method == 'post') /* NEXT STEP ;) */
+				else if(this._options.ajaxContent.method == 'post') /* NEXT STEP ;) */
 				{
 					
 				}
-				else
+				else{}
+			}
+		}
+		else if(this._options.iframe != null)
+		{
+			var iframe = document.createElement('iframe');
+			iframe.src = this._options.iframe;
+			iframe.width = '100%';
+			iframe.height = '100%';
+			
+			this._content.appendChild(iframe);
+			applyWindowContentStyle.call(this);
+		}
+		else
+		{
+			this._content.innerHTML = this._options.content;
+		}
+	}
+	
+	function applyAllWindowStyles()
+	{
+		applyWindowStyle.call(this);
+		saveWindowDefaultValues.call(this);
+		
+		applyWindowControlsStyle.call(this);
+		
+		applyTitleBarStyle.call(this);
+		
+		applyWindowContentStyle.call(this);
+		saveWindowContentDefaultValues.call(this);
+	}
+	
+	function applyAllWindowElementsStyles()
+	{
+		//saveWindowDefaultValues.call(this);
+		applyWindowControlsStyle.call(this);
+		
+		applyTitleBarStyle.call(this);
+		
+		applyWindowContentStyle.call(this);
+		//saveWindowContentDefaultValues.call(this);
+	}
+	
+	function buildWindowPart()
+	{
+		this._window = document.createElement('div');
+		this._window.className = 'window';
+
+		this._window.appendChild(this._titleBar);
+		this._window.appendChild(this._content);
+
+		resizableWindow.call(this);
+	}
+	
+	function resizableWindow()
+	{
+		var _this = this;
+		
+		if(this._defaultResizable)
+		{
+			if(this._options.resizable)
+			{
+				this._resizeN = document.createElement('div');
+				this._resizeE = document.createElement('div');
+				this._resizeS = document.createElement('div');
+				this._resizeW = document.createElement('div');
+				this._resizeNE = document.createElement('div');
+				this._resizeSE = document.createElement('div');
+				this._resizeSW = document.createElement('div');
+				this._resizeNW = document.createElement('div');
+				
+				this._window.appendChild(this._resizeN);
+				this._window.appendChild(this._resizeE);
+				this._window.appendChild(this._resizeS);
+				this._window.appendChild(this._resizeW);
+				this._window.appendChild(this._resizeNE);
+				this._window.appendChild(this._resizeSE);
+				this._window.appendChild(this._resizeSW);
+				this._window.appendChild(this._resizeNW);
+
+				this._resizeN.className = 'resizable-handle resizable-n';
+				this._resizeE.className = 'resizable-handle resizable-e';
+				this._resizeS.className = 'resizable-handle resizable-s';
+				this._resizeW.className = 'resizable-handle resizable-w';
+				this._resizeNE.className = 'resizable-handle resizable-ne';
+				this._resizeSE.className = 'resizable-handle resizable-se';
+				this._resizeSW.className = 'resizable-handle resizable-sw';
+				this._resizeNW.className = 'resizable-handle resizable-nw';
+				
+				this._resizeSE.onmousedown = resizeSEMouseDown.bind(this);
+				this._resizeSW.onmousedown = resizeSWMouseDown.bind(this);
+				this._resizeNE.onmousedown = resizeNEMouseDown.bind(this);
+				this._resizeNW.onmousedown = resizeNWMouseDown.bind(this);
+				
+				this._resizeN.onmousedown = resizeNMouseDown.bind(this);
+				this._resizeE.onmousedown = resizeEMouseDown.bind(this);
+				this._resizeS.onmousedown = resizeSMouseDown.bind(this);
+				this._resizeW.onmousedown = resizeWMouseDown.bind(this);
+			}
+			else
+			{
+				var resizeBars = this._window.querySelectorAll('div[class^="resizable"]');
+				if(resizeBars != null)
 				{
-					
+					[].forEach.call(resizeBars, function(value, index, arr){
+						_this._window.removeChild(value);
+					});
 				}
+			}
+		}
+	}
+
+	function applyWindowStyle()
+	{
+		/* Window Style */
+		var windowStyle = this._window.currentStyle || window.getComputedStyle(this._window);
+		this._windowBorderWidth = parseInt(windowStyle.borderLeftWidth, 10) + parseInt(windowStyle.borderRightWidth, 10);
+		this._windowBorderHeight = parseInt(windowStyle.borderTopWidth, 10) + parseInt(windowStyle.borderBottomWidth, 10);
+		
+		this._window.style.width = this._options.width - this._windowBorderWidth + 'px';
+		this._window.style.height = this._options.height - this._windowBorderHeight + 'px';
+		this._window.style.left = window.innerWidth / 2 - this._window.offsetWidth / 2 + 'px';
+		this._window.style.top = window.innerHeight / 2 - this._window.offsetHeight / 2 + 'px';
+		/* Place the window in the foreground */
+	    this._window.style.zIndex = this.instances + 9999;		
+	}
+
+	function saveWindowDefaultValues()
+	{
+		/* Save the window default values */
+		this._wDefaultWidth = this._options.width - this._windowBorderWidth;
+		this._wDefaultHeight = this._options.height - this._windowBorderHeight;
+		this._wDefaultLeft = window.innerWidth / 2 - this._window.offsetWidth / 2;
+		this._wDefaultTop = window.innerHeight / 2 - this._window.offsetHeight / 2;
+	}
+
+	function buildTitleBarPart()
+	{
+		this._titleBar = document.createElement('div');
+		this._title = document.createElement('span');
+
+		this._titleBar.className = 'w-title';
+		this._title.innerText = this._options.title;
+		
+		this._titleBar.appendChild(this._title);
+		this._titleBar.appendChild(this._controlsContainer);
+	}
+
+	function applyTitleBarStyle()
+	{
+		/* Title Style */
+		var titleStyle = this._title.currentStyle || window.getComputedStyle(this._title);
+		this._titlePaddingLeft = parseInt(titleStyle.paddingLeft, 10);
+		this._title.style.width = this._window.clientWidth - this._titlePaddingLeft - this._windowBorderWidth - Math.ceil(this._controlsContainer.clientWidth) + 'px';
+		
+		var titleBarStyle = this._titleBar.currentStyle || window.getComputedStyle(this._titleBar);
+		this._titleBorderWidth = parseInt(titleBarStyle.borderBottomWidth, 10);
+		this._titleHeight = this._title.offsetHeight + this._titleBorderWidth;
+		this._titleInnerHeight = this._title.offsetHeight - this._titleBorderWidth;
+	}
+
+	function buildWindowControlsPart()
+	{
+		this._controlsContainer = document.createElement('div');
+		this._closeButton = document.createElement('i');
+		this._maximizeMinimizeButton = document.createElement('i');
+		this._showHideContentButton = document.createElement('i');
+		this._reduceEnlargeButton = document.createElement('i');
+
+		this._controlsContainer.className = 'w-controls';
+		this._closeButton.className = 'icon-close red';
+		this._maximizeMinimizeButton.className = 'icon-maximize blue';
+		this._showHideContentButton.className = 'icon-hide orange';
+		this._reduceEnlargeButton.className = 'icon-reduce orange';
+
+		this._controlsContainer.appendChild(this._closeButton);
+		this._controlsContainer.appendChild(this._maximizeMinimizeButton);
+		this._controlsContainer.appendChild(this._showHideContentButton);
+		this._controlsContainer.appendChild(this._reduceEnlargeButton);
+	}
+
+	function applyWindowControlsStyle()
+	{
+		showCorrectControls.call(this);
+	}
+
+	function buildWindowContentPart()
+	{
+		this._content = document.createElement('div');
+		this._content.className = 'w-content';
+	}
+
+	function applyWindowContentStyle()
+	{
+		if(this._options.contentPadding)
+		{
+			var contentContainerStyle =  this._content.currentStyle || window.getComputedStyle(this._content);		
+			this._contentPaddingTop = parseInt(contentContainerStyle.paddingTop, 10);
+			this._contentPaddingBottom = parseInt(contentContainerStyle.paddingBottom, 10);
+			this._contentPaddingLeft = parseInt(contentContainerStyle.paddingLeft, 10);
+			this._contentPaddingRight = parseInt(contentContainerStyle.paddingRight, 10);
+		}
+		else
+		{
+			this._contentPaddingTop = this._contentDefaultPaddingTop;
+			this._contentPaddingBottom = this._contentDefaultPaddingBottom;
+			this._contentPaddingLeft = this._contentDefaultPaddingLeft;
+			this._contentPaddingRight = this._contentDefaultPaddingRight;
+		}
+		
+		
+		//this._content.style.maxHeight = this._wDefaultHeight - this._contentPaddingTop - this._contentPaddingBottom - (this._title.offsetHeight + this._titleBorderWidth) + 'px';
+		var maxHeight = (this._window.clientHeight + this._windowBorderHeight) - this._contentDefaultPaddingTop - this._contentDefaultPaddingBottom - (this._title.offsetHeight + this._titleBorderWidth);
+		this._content.style.maxHeight = maxHeight + 'px';
+		this._content.style.height = maxHeight + 'px';
+		
+		if((this._contentDefaultPaddingTop + this._contentDefaultPaddingBottom) > (maxHeight + (this._contentDefaultPaddingTop + this._contentDefaultPaddingBottom)))
+		{
+			if(maxHeight < 0)
+			{
+				this._content.style.paddingTop = 0 + 'px';
+				this._content.style.paddingBottom = 0 + 'px';
+				this._content.style.paddingLeft = this._contentDefaultPaddingLeft + 'px';
+				this._content.style.paddingRight = this._contentDefaultPaddingRight + 'px';
 			}
 		}
 		else
 		{
-			this._content.innerHTML = this._options.content;		
+			this._content.style.paddingTop = this._contentDefaultPaddingTop + 'px';
+			this._content.style.paddingBottom = this._contentDefaultPaddingBottom + 'px';
+			this._content.style.paddingLeft = this._contentDefaultPaddingLeft + 'px';
+			this._content.style.paddingRight = this._contentDefaultPaddingRight + 'px';
 		}
 		
+		this._contentDefaultHeight = maxHeight;
+	}
+
+	function saveWindowContentDefaultValues()
+	{
+		this._contentDefaultHeight = this._wDefaultHeight - this._contentPaddingTop - this._contentPaddingBottom - (this._title.offsetHeight + this._titleBorderWidth);
 	}
 	
 	function initEvents()
 	{
 		if(this._closeButton)
 		{
-			this._closeButton.addEventListener('click', this.close.bind(this));
+			this._closeButton.onclick = this.close.bind(this);
 		}
 		
 		if(this._maximizeMinimizeButton)
 		{
-			this._maximizeMinimizeButton.addEventListener('click', this.maximizeMinimize.bind(this));
+			this._maximizeMinimizeButton.onclick = this.maximizeMinimize.bind(this);
 		}
 		
+		if(this._showHideContentButton)
+		{
+			this._showHideContentButton.onclick = this.showHideContent.bind(this);
+		}
+
 		if(this._reduceEnlargeButton)
 		{
-			this._reduceEnlargeButton.addEventListener('click', this.reduceEnlarge.bind(this));
+			this._reduceEnlargeButton.onclick = this.reduceEnlarge.bind(this);
+		}
+
+		if(this._window)
+		{
+			this._window.onmousedown = selectWindow.bind(this);
+		}
+		
+		if(this._options.resizable && this._resizeN && this._resizeE && this._resizeS && this._resizeW && this._resizeNE && this._resizeSE && this._resizeSW && this._resizeNW)
+		{
+			this._resizeSE.onmousedown = resizeSEMouseDown.bind(this);
+			this._resizeSW.onmousedown = resizeSWMouseDown.bind(this);
+			this._resizeNE.onmousedown = resizeNEMouseDown.bind(this);
+			this._resizeNW.onmousedown = resizeNWMouseDown.bind(this);
+			this._resizeN.onmousedown = resizeNMouseDown.bind(this);
+			this._resizeE.onmousedown = resizeEMouseDown.bind(this);
+			this._resizeS.onmousedown = resizeSMouseDown.bind(this);
+			this._resizeW.onmousedown = resizeWMouseDown.bind(this);
 		}
 	}
 	

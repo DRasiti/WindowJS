@@ -2,16 +2,18 @@
 	<h1>WindowJS</h1>
 	<p>Ce contenu vien d'être charger en Ajax !</p>
 
-	<a id="modal" class="btn"><span class="fa fa-external-link"></span> modal</a>
+	<a id="modal" class="btn"><span class="icon-enlarge"></span>Modal</a>
 
 	<script>
-		document.getElementById('modal').addEventListener('click', function(){
-			
+		document.getElementById('modal').addEventListener('click', function(e){
+			e.stopPropagation();
+
 			new WindowJS({
 				width: 250,
 				height: 170,
+				title: 'Modal Window',
 				modal: true,
-				draggable: false
+				content: '<h1>Modal Window</h1><p>Le contenu de la fenêtre 4</p>'
 			});
 		});
 	</script>
