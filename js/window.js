@@ -162,8 +162,6 @@
 			this._fullscreen = false;
 			this.maximizeMinimize.call(this);
 		}
-
-		console.dir(this);
 	}
 	
 	/* Global attribute to all WIndowJS instances */
@@ -173,6 +171,8 @@
 	 * Public Methods
 	 */
 	WindowJS.prototype.close = function(){
+		var _this = this;
+
 		this._window.parentNode.removeChild(this._window);
 
 		if(this._options.modal)
@@ -192,10 +192,11 @@
 
 		/* Correct the ids of the rest of instances */
 		WindowJS.allInstances.forEach(function(elem){
-			if(elem._instanceId > this._instanceId)
+
+			if(elem._instanceId > _this._instanceId)
 			{
-				elem._instanceId = this._instanceId;
-				this._instanceId = this._instanceId + 1;
+				elem._instanceId = _this._instanceId;
+				_this._instanceId = _this._instanceId + 1;
 			}
 	    	
 	    });
@@ -204,8 +205,6 @@
 		{
 			this._options.onClose();
 		}
-
-		console.dir(this);
 
 	}
 	WindowJS.prototype.maximizeMinimize = function(){
