@@ -7,38 +7,162 @@
        	<meta name="keywords" content="" />
 
        	<link rel="stylesheet" type="text/css" href="./css/window.css" />
-       	<link rel="stylesheet" type="text/css" href="./css/font-awesome.min.css" />
+       	<link rel="stylesheet" type="text/css" href="./css/fontello.css" />
+       	<link rel="stylesheet" type="text/css" href="./css/github.css" />
 	</head>
 
 	<body>
-		<h1>WindowJS</h1>
+		<div class="content">
+			<div class="logo center">
+					<img src="images/windowJSlogo100x100.png" alt="logo WindowJS" />
+					<h1 class="title">Window<span>JS</span></h1>
+			</div>
+			
+			<p class="center">Vanilla JavaScript plugin for creating complex windows with a minimum of code.</p>
+			
+			<h2>Getting started</h2>
 
-		<img src="http://img.radio-canada.ca/2016/04/22/635x357/160422_wo56j_joconde_sn635.jpg" />
+			<p>To start using this plugin, you just need to download it and include three files.</p>
 
-		<br/>
+<h3 class="code">HTML</h3>
+<pre><code class="html">...
+&lt;head>
+	...
+	&lt;link rel="stylesheet" type="text/css" href="css/window.css" />
+   	&lt;link rel="stylesheet" type="text/css" href="css/fontello.css" />
+   	...
+&lt;/div>
+
+&lt;body>
+	...
+	&lt;script type="text/javascript" src="js/window.js">&lt;/script>
+&lt;/body>
+</code></pre>
+
+			<h2>Examples</h2>
+
+			<div class="center">
+				<a id="open1" class="btn"><span class="icon-enlarge"></span>Ajax</a>
+				<a id="open2" class="btn"><span class="icon-enlarge"></span>Not resizable window !</a>
+				<a id="open3" class="btn"><span class="icon-enlarge"></span>Default window</a>
+				<a id="open4" class="btn"><span class="icon-enlarge"></span>Modal</a>
+				<a id="open5" class="btn"><span class="icon-enlarge"></span>il Grotto iFrame</a>
+				<a id="open6" class="btn"><span class="icon-enlarge"></span>Infinite windows</a>
+			</div>
 		
-		<a id="open1" class="btn"><span class="fa fa-external-link"></span> window 1</a>
-		<a id="open2" class="btn"><span class="fa fa-external-link"></span> window 2</a>
-		<a id="open3" class="btn"><span class="fa fa-external-link"></span> window 3</a>
-		<a id="open4" class="btn"><span class="fa fa-external-link"></span> window 4</a>
-		<a id="open5" class="btn"><span class="fa fa-external-link"></span> window 5</a>
-		
-		<div id="result"></div>
-		
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-		<script type="text/javascript" src="./window.js"></script>
+
+<h3 class="code">HTML</h3>
+<pre><code class="html">&lt;div class="center">
+	&lt;a id="open1" class="btn">&lt;span class="icon-enlarge">&lt;/span>Ajax&lt;/a>
+	&lt;a id="open2" class="btn">&lt;span class="icon-enlarge">&lt;/span>Not resizable window !&lt;/a>
+	&lt;a id="open3" class="btn">&lt;span class="icon-enlarge">&lt;/span>Default window&lt;/a>
+	&lt;a id="open4" class="btn">&lt;span class="icon-enlarge">&lt;/span>Modal&lt;/a>
+	&lt;a id="open4" class="btn">&lt;span class="icon-enlarge">&lt;/span>il Grotto iFrame&lt;/a>
+	&lt;a id="open5" class="btn">&lt;span class="icon-enlarge">&lt;/span>Infinite windows&lt;/a>
+&lt;/div>
+</code></pre>
+
+<h3 class="code">JavaScript</h3>
+<pre><code class="js">var w1 = w2 = w3 = w4 = w5 = null;
+
+document.getElementById('open1').addEventListener('click', function(){
+	var options = {
+		title: 'Window with Ajax content inside !',
+		ajaxContent: {
+			url: './simple.html',
+			method: 'get'
+		},
+		onClose: function(){
+			w1 = null;
+		}
+	};
+	
+	w1 = w1 instanceof WindowJS ? w1 : new WindowJS(options);
+});
+
+
+document.getElementById('open2').addEventListener('click', function(){
+	var options = {
+		width: 700,
+		height: 270,
+		title: 'Not resizable window !',
+		resizable: false,
+		content: '&lt;h1>Not resizable window with custom size (width/height)&lt;/h1>&lt;p>Just an other paragraph.&lt;/p>',
+		onClose: function(){
+			w2 = null;
+		}
+	};
+	
+	w2 = w2 instanceof WindowJS ? w2 : new WindowJS(options);
+});
+
+
+document.getElementById('open3').addEventListener('click', function(){
+	var options = {
+		title: 'Default window !',
+		content: '&lt;h1>Default Window&lt;/h1>&lt;p>With two custom options ("title" and "content")&lt;/p>',
+		onClose: function(){
+			w3 = null;
+		}
+	};
+	
+	w3 = w3 instanceof WindowJS ? w3 : new WindowJS(options);
+});
+
+document.getElementById('open4').addEventListener('click', function(){
+	var options = {
+		title: 'Modal window !',
+		modal: true,
+		content: '&lt;h1>Modal window&lt;/h1>&lt;p>The content of the 4th window&lt;/p>&lt;p>And an other paragraph :)&lt;/p>',
+		onClose: function(){
+			w4 = null;
+		}
+	};
+	
+	w4 = w4 instanceof WindowJS ? w4 : new WindowJS(options);
+});
+
+document.getElementById('open5').addEventListener('click', function(){
+	var options = {
+		width: 940,
+		height: 715,
+		title: 'il Grotto Restaurant - Caveau',
+		iframe: 'http://www.il-grotto.ch/',
+		maximized: false,
+		contentPadding: false,
+		onClose: function(){
+			w5 = null;
+		}
+	};
+	
+	w5 = w5 instanceof WindowJS ? w5 : new WindowJS(options);
+});
+
+document.getElementById('open6').addEventListener('click', function(){
+	new WindowJS();
+});
+</code></pre>
+	
+			<h2>Options</h2>
+
+			<p>...</p>
+
+			<h2>Methods</h2>
+
+			<p>...</p>
+		</div>
+
+		<script type="text/javascript" src="./js/window.js"></script>
+		<script src="./js/highlight.pack.js"></script>
+		<script>hljs.initHighlightingOnLoad();</script>
+
 		<script>
 			var w1 = w2 = w3 = w4 = w5 = null;
 
 			document.getElementById('open1').addEventListener('click', function(){
 				var options = {
-					width: 600,
-					height: 270,
-					title: 'Window 1 !',
-					modal: false,
-					draggable: true,
-					ajaxContent: true,
-					ajax: {
+					title: 'Window with Ajax content inside !',
+					ajaxContent: {
 						url: './simple.html',
 						method: 'get'
 					},
@@ -53,12 +177,11 @@
 
 			document.getElementById('open2').addEventListener('click', function(){
 				var options = {
-					width: 600,
+					width: 700,
 					height: 270,
-					title: 'Window 2 !',
-					modal: false,
-					draggable: true,
-					content: '<h1>Window 2</h1><p>Le contenu de la fenêtre 2</p>',
+					title: 'Not resizable window !',
+					resizable: false,
+					content: '<h1>Not resizable window with custom size (width/height)</h1><p>Just an other paragraph.</p>',
 					onClose: function(){
 						w2 = null;
 					}
@@ -70,12 +193,8 @@
 
 			document.getElementById('open3').addEventListener('click', function(){
 				var options = {
-					width: 600,
-					height: 270,
-					title: 'Window 3 !',
-					modal: false,
-					draggable: true,
-					content: '<h1>Window 3</h1><p>Le contenu de la fenêtre 3</p>',
+					title: 'Default window !',
+					content: '<h1>Default Window</h1><p>With two custom options ("title" and "content")</p>',
 					onClose: function(){
 						w3 = null;
 					}
@@ -84,15 +203,11 @@
 				w3 = w3 instanceof WindowJS ? w3 : new WindowJS(options);
 			});
 
-
 			document.getElementById('open4').addEventListener('click', function(){
 				var options = {
-					width: 600,
-					height: 270,
-					title: 'Window 4 !',
-					modal: false,
-					draggable: true,
-					content: '<h1>Window 4</h1><p>Le contenu de la fenêtre 4</p>',
+					title: 'Modal window !',
+					modal: true,
+					content: '<h1>Modal window</h1><p>The content of the 4th window</p><p>And an other paragraph :)</p>',
 					onClose: function(){
 						w4 = null;
 					}
@@ -100,16 +215,15 @@
 				
 				w4 = w4 instanceof WindowJS ? w4 : new WindowJS(options);
 			});
-
-
+			
 			document.getElementById('open5').addEventListener('click', function(){
 				var options = {
-					width: 600,
-					height: 270,
-					title: 'Window 5 !',
-					modal: false,
-					draggable: true,
-					content: '<h1>Window 5</h1><p>Le contenu de la fenêtre 5</p>',
+					width: 940,
+					height: 715,
+					title: 'il Grotto Restaurant - Caveau',
+					iframe: 'http://www.il-grotto.ch/',
+					maximized: false,
+					contentPadding: false,
 					onClose: function(){
 						w5 = null;
 					}
@@ -117,11 +231,10 @@
 				
 				w5 = w5 instanceof WindowJS ? w5 : new WindowJS(options);
 			});
-
-			function closeWindow()
-			{
-				this.w = null;
-			}
+			
+			document.getElementById('open6').addEventListener('click', function(){
+				new WindowJS();
+			});
 		</script>
 	</body>
 </html>
