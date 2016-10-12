@@ -903,8 +903,6 @@
 				/* Loader style */
 				loader.style.top = this._title.offsetHeight + this._titleBorderWidth + 'px';
 				
-				console.dir(loader);
-				
 				/* Append loader element to content container element */
 				this._content.appendChild(loader);
 				
@@ -930,7 +928,7 @@
 								_this._content.innerHTML = request.statusText;
 							}
 							
-							//_this._content.removeChild(loader);
+							_this._content.removeChild(loader);
 						}
 					};
 					/* Catch errors */
