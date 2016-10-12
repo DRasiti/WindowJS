@@ -930,7 +930,7 @@
 								_this._content.innerHTML = request.statusText;
 							}
 							
-							_this._content.removeChild(loader);
+							//_this._content.removeChild(loader);
 						}
 					};
 					/* Catch errors */
