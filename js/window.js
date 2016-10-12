@@ -92,7 +92,7 @@
 			content: 'Content of window Here !',
 			ajaxContent: null, /* { url: '', method: 'get' } */
 			iframe: null,
-			loaderImg: '../images/w-loader.gif',
+			loaderImg: './images/w-loader.gif',
 			onClose: null
 		};
 		
