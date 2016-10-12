@@ -92,6 +92,7 @@
 			content: 'Content of window Here !',
 			ajaxContent: null, /* { url: '', method: 'get' } */
 			iframe: null,
+			loaderImg: '../images/w-loader.gif',
 			onClose: null
 		};
 		
@@ -890,7 +891,7 @@
 				var imgLoader = document.createElement('img');
 				
 				/* Loader image attributes */
-				imgLoader.setAttribute('src', './images/w-loader.gif');
+				imgLoader.setAttribute('src', (typeof this._options.loaderImg === 'string') ? this._options.loaderImg : '');
 				imgLoader.setAttribute('alt', 'loader');
 				
 				/* Loader attributes */
