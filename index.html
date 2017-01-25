@@ -418,6 +418,26 @@ document.getElementById('open6').addEventListener('click', function(){
 					</tr>
 				</tbody>
 			</table>
+			<p>Each of callback functions can manipulate the window through the callback parameter (ie. "window")</p>
+			<h3 class="code">JavaScript</h3>
+<pre><code class="js">var w1 = null;
+
+document.getElementById('open1').addEventListener('click', function(){
+	var options = {
+		title: 'Window with Ajax content inside !',
+		ajaxContent: {
+			url: './simple.html',
+			method: 'get'
+		},
+		onClose: function(window){
+			console.dir(window);
+			w1 = null;
+		}
+	};
+	
+	w1 = w1 instanceof WindowJS ? w1 : new WindowJS(options);
+});
+</code></pre>
 			
 			<h2>Themes</h2>
 			<p>There are only two themes in the current version (light and dark). Use one of the below css files in your projects</p>
@@ -430,7 +450,11 @@ document.getElementById('open6').addEventListener('click', function(){
 			<h2>Styles</h2>
 			<p>Styles can be changed in css files. (window_light.css or window_dark.css - depend on which one you use)</p>
 		</div>
-
+		
+		<footer>
+			Copyright &copy; 2016 - Dzulistan Rasiti
+		</footer>
+		
 		<script type="text/javascript" src="./js/window.js"></script>
 		<script src="./js/highlight.pack.js"></script>
 		<script>hljs.initHighlightingOnLoad();</script>
@@ -445,51 +469,8 @@ document.getElementById('open6').addEventListener('click', function(){
 						url: './simple.html',
 						method: 'get'
 					},
-					onOpen: function(){
-						console.log('opened');
-					},
 					onClose: function(){
 						w1 = null;
-						console.log('closed');
-					},
-					onMinimize: function(){
-						console.log('minimized');
-					},
-					onMaximize: function(){
-						console.log('maximized');
-					},
-					onEnlarge: function(){
-						console.log('enlarged');
-					},
-					onReduce: function(){
-						console.log('reduced');
-					},
-					onShow: function(){
-						console.log('shown');
-					},
-					onHide: function(){
-						console.log('hidden');
-					},
-					onSelectWindow: function(){
-						console.log('selected');
-					},
-					onDragStart: function(){
-						console.log('start dragging');
-					},
-					onDragEnd: function(){
-						console.log('end dragging');
-					},
-					onDragging: function(){
-						console.log('dragging');
-					},
-					onResizeStart: function(){
-						console.log('resize start');
-					},
-					onResizeEnd: function(){
-						console.log('resize end');
-					},
-					onResizing: function(){
-						console.log('resizing');
 					}
 				};
 				

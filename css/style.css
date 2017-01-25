@@ -114,3 +114,9 @@ table tr td:first-child {
 table tr td > span.red {
 	color: #E25656;
 }
+footer {
+	text-align: center;
+	margin: 55px 0 30px 0;
+	font-size: .8em;
+	color: #BBBDC9;
+}
