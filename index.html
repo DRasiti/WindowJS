@@ -6,9 +6,10 @@
 		<meta name="description" content="" />
        	<meta name="keywords" content="" />
 
-       	<link rel="stylesheet" type="text/css" href="./css/window.css" />
+       	<link rel="stylesheet" type="text/css" href="./css/window_light.css" />
        	<link rel="stylesheet" type="text/css" href="./css/fontello.css" />
        	<link rel="stylesheet" type="text/css" href="./css/github.css" />
+       	<link rel="stylesheet" type="text/css" href="./css/style.css" />
 	</head>
 
 	<body>
@@ -25,18 +26,20 @@
 			<p>To start using this plugin, you just need to download it and include three files.</p>
 
 <h3 class="code">HTML</h3>
-<pre><code class="html">...
-&lt;head>
-	...
-	&lt;link rel="stylesheet" type="text/css" href="css/window.css" />
-   	&lt;link rel="stylesheet" type="text/css" href="css/fontello.css" />
-   	...
-&lt;/head>
+<pre><code class="html">&lt;!DOCTYPE html>
+&lt;html>
+	&lt;head>
+		...
+		&lt;link rel="stylesheet" type="text/css" href="css/window_light.css" /> &lt;!-- OR "css/window_dark.css" -->
+		&lt;link rel="stylesheet" type="text/css" href="css/fontello.css" />
+		...
+	&lt;/head>
 
-&lt;body>
-	...
-	&lt;script type="text/javascript" src="js/window.js">&lt;/script>
-&lt;/body>
+	&lt;body>
+		...
+		&lt;script type="text/javascript" src="js/window.js">&lt;/script>
+	&lt;/body>
+&lt;/html>
 </code></pre>
 
 			<h2>Examples</h2>
@@ -87,7 +90,7 @@ document.getElementById('open2').addEventListener('click', function(){
 		height: 270,
 		title: 'Not resizable window !',
 		resizable: false,
-		content: '&lt;h1>Not resizable window with custom size (width/height)&lt;/h1>&lt;p>Just an other paragraph.&lt;/p>',
+		content: '&lt;h1>Not resizable window with custom size (width/height)&lt;/h1>&lt;p>Just another paragraph.&lt;/p>',
 		onClose: function(){
 			w2 = null;
 		}
@@ -113,7 +116,7 @@ document.getElementById('open4').addEventListener('click', function(){
 	var options = {
 		title: 'Modal window !',
 		modal: true,
-		content: '&lt;h1>Modal window&lt;/h1>&lt;p>The content of the 4th window&lt;/p>&lt;p>And an other paragraph :)&lt;/p>',
+		content: '&lt;h1>Modal window&lt;/h1>&lt;p>The content of the 4th window&lt;/p>&lt;p>And another paragraph :)&lt;/p>',
 		onClose: function(){
 			w4 = null;
 		}
@@ -145,11 +148,287 @@ document.getElementById('open6').addEventListener('click', function(){
 	
 			<h2>Options</h2>
 
-			<p>Soon...</p>
+			<table>
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Type</th>
+						<th>Default value</th>
+						<th>Accepted value</th>
+						<th>Desctiption</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>width</td>
+						<td>integer</td>
+						<td>700</td>
+						<td>any integer</td>
+						<td>The width of the window (in pixels)</td>
+					</tr>
+					<tr>
+						<td>height</td>
+						<td>integer</td>
+						<td>500</td>
+						<td>any integer</td>
+						<td>The height of the window (in pixels)</td>
+					</tr>
+					<tr>
+						<td>minWidth</td>
+						<td>integer</td>
+						<td>225</td>
+						<td>any integer</td>
+						<td>The minimum width of the window reduction (in pixels)</td>
+					</tr>
+					<tr>
+						<td>minHeight</td>
+						<td>integer</td>
+						<td>100</td>
+						<td>any integer</td>
+						<td>The minimum height of the window reduction (in pixels)</td>
+					</tr>
+					<tr>
+						<td>title</td>
+						<td>string</td>
+						<td>'Title Here !'</td>
+						<td>any string</td>
+						<td>The title of the window</td>
+					</tr>
+					<tr>
+						<td>modal</td>
+						<td>boolean</td>
+						<td>false</td>
+						<td>true or false</td>
+						<td>Defines the type of window. If set to true, then the window will be modal if set to false the window will be normal.</td>
+					</tr>
+					<tr>
+						<td>modal</td>
+						<td>boolean</td>
+						<td>false</td>
+						<td>true or false</td>
+						<td>Defines the type of window. If set to true, then the window will be modal if set to false the window will be normal.</td>
+					</tr>
+					<tr>
+						<td>resizable</td>
+						<td>boolean</td>
+						<td>true</td>
+						<td>true or false</td>
+						<td>Allows you to make the window resizable.</td>
+					</tr>
+					<tr>
+						<td>draggable</td>
+						<td>boolean</td>
+						<td>true</td>
+						<td>true or false</td>
+						<td>Allows you to make the window draggable.</td>
+					</tr>
+					<tr>
+						<td>onDragOpacity</td>
+						<td>integer</td>
+						<td>85</td>
+						<td>any integer</td>
+						<td>Represent the percentage of opacity when the window is moved.</td>
+					</tr>
+					<tr>
+						<td>reducedWidth</td>
+						<td>integer</td>
+						<td>225</td>
+						<td>any integer</td>
+						<td>The width of the reduced window (in pixels)</td>
+					</tr>
+					<tr>
+						<td>maximized</td>
+						<td>boolean</td>
+						<td>false</td>
+						<td>true or false</td>
+						<td>If set to true, display the window on the entire page, if set to false the display window with "width / height" values</td>
+					</tr>
+					<tr>
+						<td>overlayColor</td>
+						<td>string</td>
+						<td>null</td>
+						<td>hexadecimal color</td>
+						<td>Set the color of the overlay when the window is modal. If not specified, the value is taken from the css file</td>
+					</tr>
+					<tr>
+						<td>overlayOpacity</td>
+						<td>integer</td>
+						<td>null</td>
+						<td>any integer</td>
+						<td>Represent the percentage of opacity for the overlay. If not specified, the value is taken from the css file.</td>
+					</tr>
+					<tr>
+						<td>contentPadding</td>
+						<td>boolean</td>
+						<td>true</td>
+						<td>true or false</td>
+						<td>If set to false the content wrapper use the padding of ".w-content" class contains in "windows.css" file. If set to true the content wrapper does not have paddings.</td>
+					</tr>
+					<tr>
+						<td>loaderImg</td>
+						<td>string</td>
+						<td>'./images/w-loader.gif'</td>
+						<td>path string</td>
+						<td>The relative path to the loader image.</td>
+					</tr>
+					<tr>
+						<td>ajaxContent</td>
+						<td>object</td>
+						<td>null</td>
+						<td>
+							{<br/>
+							&nbsp;&nbsp;&nbsp;&nbsp;url: 'the url string',<br/>
+							&nbsp;&nbsp;&nbsp;&nbsp;method: 'post | get'<br/>
+							&nbsp;&nbsp;&nbsp;&nbsp;data: 'key=value'<br/>
+							}
+						</td>
+						<td>
+							Load the window content from an ajax query.<br/>
+							url: 'someurl.com'<br/>
+							method: 'post' or 'get'<br/>
+							data: 'key=value&amp;key2=value2...'
+						</td>
+					</tr>
+					<tr>
+						<td>iframe</td>
+						<td>string</td>
+						<td>null</td>
+						<td>src url string</td>
+						<td>If a source url is specified, the window content will be an &lt;iframe&gt; with that source.</td>
+					</tr>
+					<tr>
+						<td>content</td>
+						<td>string</td>
+						<td>'Content of the window Here !'</td>
+						<td>text or html string</td>
+						<td>The content of the window.</td>
+					</tr>
+				</tbody>
+			</table>
 
-			<h2>Methods</h2>
+			<h2>Callback functions</h2>
+			<table>
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Type</th>
+						<th>Default value</th>
+						<th>Accepted value</th>
+						<th>Desctiption</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>onOpen</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window is opened.</td>
+					</tr>
+					<tr>
+						<td>onClose</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window is closed.</td>
+					</tr>
+					<tr>
+						<td>onMinimize</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window is minimized.</td>
+					</tr>
+					<tr>
+						<td>onMaximize</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window is maximized.</td>
+					</tr>
+					<tr>
+						<td>onEnlarge</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window is enlarged.</td>
+					</tr>
+					<tr>
+						<td>onReduce</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window is reduced.</td>
+					</tr>
+					<tr>
+						<td>onShow</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window body (content) is shown.</td>
+					</tr>
+					<tr>
+						<td>onHide</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs when the window body (content) is hidden.</td>
+					</tr>
+					<tr>
+						<td>onDragStart</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs at the start of window dragging.</td>
+					</tr>
+					<tr>
+						<td>onDragEnd</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs at the end of window dragging.</td>
+					</tr>
+					<tr>
+						<td>onDragging</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs during the window dragging.</td>
+					</tr>
+					<tr>
+						<td>onResizeStart</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs at the start of window resizing.</td>
+					</tr>
+					<tr>
+						<td>onResizeEnd</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs at the end of window resizing.</td>
+					</tr>
+					<tr>
+						<td>onResizing</td>
+						<td>function</td>
+						<td>null</td>
+						<td>any valid function()</td>
+						<td>Runs during the window resizing.</td>
+					</tr>
+				</tbody>
+			</table>
+			
+			<h2>Themes</h2>
+			<p>There are only two themes in the current version (light and dark). Use one of the below css files in your projects</p>
+<h3 class="code">HTML</h3>
+<pre><code class="html">&lt;link rel="stylesheet" type="text/css" href="css/window_light.css" />
+&lt;!-- OR -->
+&lt;link rel="stylesheet" type="text/css" href="css/window_dark.css" />
+</code></pre>
 
-			<p>Soon...</p>
+			<h2>Styles</h2>
+			<p>Styles can be changed in css files. (window_light.css or window_dark.css - depend on which one you use)</p>
 		</div>
 
 		<script type="text/javascript" src="./js/window.js"></script>
@@ -166,8 +445,51 @@ document.getElementById('open6').addEventListener('click', function(){
 						url: './simple.html',
 						method: 'get'
 					},
+					onOpen: function(){
+						console.log('opened');
+					},
 					onClose: function(){
 						w1 = null;
+						console.log('closed');
+					},
+					onMinimize: function(){
+						console.log('minimized');
+					},
+					onMaximize: function(){
+						console.log('maximized');
+					},
+					onEnlarge: function(){
+						console.log('enlarged');
+					},
+					onReduce: function(){
+						console.log('reduced');
+					},
+					onShow: function(){
+						console.log('shown');
+					},
+					onHide: function(){
+						console.log('hidden');
+					},
+					onSelectWindow: function(){
+						console.log('selected');
+					},
+					onDragStart: function(){
+						console.log('start dragging');
+					},
+					onDragEnd: function(){
+						console.log('end dragging');
+					},
+					onDragging: function(){
+						console.log('dragging');
+					},
+					onResizeStart: function(){
+						console.log('resize start');
+					},
+					onResizeEnd: function(){
+						console.log('resize end');
+					},
+					onResizing: function(){
+						console.log('resizing');
 					}
 				};
 				
@@ -181,7 +503,7 @@ document.getElementById('open6').addEventListener('click', function(){
 					height: 270,
 					title: 'Not resizable window !',
 					resizable: false,
-					content: '<h1>Not resizable window with custom size (width/height)</h1><p>Just an other paragraph.</p>',
+					content: '<h1>Not resizable window with custom size (width/height)</h1><p>Just another paragraph.</p>',
 					onClose: function(){
 						w2 = null;
 					}
@@ -207,7 +529,7 @@ document.getElementById('open6').addEventListener('click', function(){
 				var options = {
 					title: 'Modal window !',
 					modal: true,
-					content: '<h1>Modal window</h1><p>The content of the 4th window</p><p>And an other paragraph :)</p>',
+					content: '<h1>Modal window</h1><p>The content of the 4th window</p><p>And another paragraph :)</p>',
 					onClose: function(){
 						w4 = null;
 					}

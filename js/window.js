@@ -1,7 +1,16 @@
+/**
+ * WindowJS v1.0.0 - JavaScript windows builder. Allows you to build windows in a few lines of code
+ * https://drasiti.github.io/WindowJS/
+ *
+ * Author: Dzulistan Rasiti (rasiti.d@gmail.com)
+ *
+ * Copyright 2016, Dzulistan Rasiti
+ *
+ * Released under the MIT license - http://opensource.org/licenses/MIT
+ */
 ;(function(){
 	
 	this.WindowJS = function(){
-		
 		this._options = null;
 		this._window = null;
 		this._title = null;
@@ -53,6 +62,8 @@
 			endY : 0
 		};
 		
+		this._initialStatus = false;
+		
 		this._defaultResizable = null;
 		this._resizeN = null;
 		this._resizeE = null;
@@ -83,17 +94,57 @@
 			draggable: true,
 			onDragOpacity: 85,
 			resizable: true,
-			controls: true,
 			reducedWidth: 250,
 			maximized: false,
-			overlayColor: '#ffffff', /* #3fd or #33ffdd */
-			overlayOpacity: 90,
+			overlayColor: null, /* #3fd or #33ffdd */
+			overlayOpacity: null,
 			contentPadding: true,
-			content: 'Content of window Here !',
-			ajaxContent: null, /* { url: '', method: 'get' } */
+			content: 'Content of the window Here !',
+			ajaxContent: null, /* { url: '', method: 'get', data: ''} */
 			iframe: null,
 			loaderImg: './images/w-loader.gif',
-			onClose: null
+			onOpen: function(){
+				return this;
+			},
+			onClose: function(){
+				return this;
+			},
+			onMinimize: function(){
+				return this;
+			},
+			onMaximize: function(){
+				return this;
+			},
+			onEnlarge: function(){
+				return this;
+			},
+			onReduce: function(){
+				return this;
+			},
+			onShow: function(){
+				return this;
+			},
+			onHide: function(){
+				return this;
+			},
+			onDragStart: function(){
+				return this;
+			},
+			onDragEnd: function(){
+				return this;
+			},
+			onDragging: function(){
+				return this;
+			},
+			onResizeStart: function(){
+				return this;
+			},
+			onResizeEnd: function(){
+				return this;
+			},
+			onResizing: function(){
+				return this;
+			}
 		};
 		
 		/* Create options by extending defaults with the passed in arugments */
@@ -202,12 +253,9 @@
 	    	
 	    });
 
-		if(this._options.onClose !== null && typeof this._options.onClose === 'function')
-		{
-			this._options.onClose();
-		}
-
+		this._options.onClose.call(undefined, this._window);
 	}
+	
 	WindowJS.prototype.maximizeMinimize = function(){
 		
 		if(this._fullscreen)
@@ -231,10 +279,15 @@
 				draggable.call(this);
 			}			
 			
-			this._maximizeMinimizeButton.className = 'icon-maximize blue';
+			this._maximizeMinimizeButton.className = 'icon-maximize';
 			
 			// Resizable on normal screen
 			this._options.resizable = true;
+			
+			if(!this._initialStatus)
+			{
+				this._options.onMinimize.call(undefined, this._window);
+			}
 		}
 		else
 		{
@@ -257,21 +310,27 @@
 				removeDraggable.call(this);
 			}
 			
-			this._maximizeMinimizeButton.className = 'icon-minimize blue';
+			this._maximizeMinimizeButton.className = 'icon-minimize';
 			
 			// No resize on fullscreen
 			this._options.resizable = false;
+			
+			if(!this._initialStatus)
+			{
+				this._options.onMaximize.call(undefined, this._window);
+			}
 		}
 		
 		applyAllWindowElementsStyles.call(this);
 		
 		/* Reset reduce values */
 		this._hidden = false;
-		this._showHideContentButton.className = 'icon-hide orange';
+		this._showHideContentButton.className = 'icon-hide';
 		
 		// Rezizable window depend of "this._options.resizable" value
 		resizableWindow.call(this);
 	}
+	
 	WindowJS.prototype.showHideContent = function(){
 		if(this._hidden)
 		{
@@ -303,7 +362,12 @@
 				this._options.resizable = true;
 			}			
 			
-			this._showHideContentButton.className = 'icon-hide orange';
+			this._showHideContentButton.className = 'icon-hide';
+			
+			if(!this._initialStatus)
+			{
+				this._options.onShow.call(undefined, this._window);
+			}
 		}
 		else
 		{
@@ -329,16 +393,22 @@
 				this._window.style.height = '';
 			}
 			
-			this._showHideContentButton.className = 'icon-show orange';
+			this._showHideContentButton.className = 'icon-show';
 			
 			// No resize when the window is reduced
 			this._options.resizable = false;
+			
+			if(!this._initialStatus)
+			{
+				this._options.onHide.call(undefined, this._window);
+			}
 		}
 		
 		applyAllWindowElementsStyles.call(this);
 		
 		resizableWindow.call(this);
 	}
+	
 	WindowJS.prototype.reduceEnlarge = function()
 	{
 		if(this._reduced)
@@ -364,7 +434,9 @@
 			document.body.appendChild(this._window);
 			this._options.resizable = true;
 			
-			this._reduceEnlargeButton.className = 'icon-reduce orange';
+			this._reduceEnlargeButton.className = 'icon-reduce';
+			
+			this._options.onEnlarge.call(undefined, this._window);
 		}
 		else
 		{
@@ -387,7 +459,9 @@
 			WindowJS.prototype.reducedWindowsContainer.appendChild(this._window);
 			this._options.resizable = false;
 			
-			this._reduceEnlargeButton.className = 'icon-enlarge green';
+			this._reduceEnlargeButton.className = 'icon-enlarge';
+			
+			this._options.onReduce.call(undefined, this._window);
 		}
 
 		applyAllWindowElementsStyles.call(this);
@@ -423,6 +497,8 @@
 	
 	function showWindowInInitialStatus()
 	{
+		this._initialStatus = true;
+		
 		if(!this._reduced)
 		{
 			if(this._fullscreen && this._hidden)
@@ -457,6 +533,8 @@
 				}
 			}
 		}
+		
+		this._initialStatus = false;
 	}
 	
 	function selectWindow(e)
@@ -468,11 +546,6 @@
 	    	elem._window.style.zIndex = 9999 - elem._instanceId;
 	    });
 	    _this._window.style.zIndex = 9999 + _this._instanceId;
-	}
-
-	function unselectWindow()
-	{
-		this._window.onmousedown = null;
 	}
 	
 	function removeDraggable()
@@ -509,13 +582,7 @@
 	    this._dragOffset.x = e.pageX - _this._window.offsetLeft;
 	    this._dragOffset.y = e.pageY - _this._window.offsetTop;
 
-	    /* Place the current window in the foregroud */
-	    selectWindow.call(this);
-
-	    /*WindowJS.allInstances.forEach(function(elem){
-	    	elem._window.style.zIndex = 9999 - elem._instanceId;
-	    });
-	    _this._window.style.zIndex = 9999 + _this._instanceId;*/
+	    this._options.onDragStart.call(undefined, this._window);
 	}
 
 	function mouseUp()
@@ -527,6 +594,8 @@
 
 	    /* Reset the window opacity when moving is stopped */
 		_this._window.style.opacity = '1';
+		
+		this._options.onDragEnd.call(undefined, this._window);
 	}
 
 	function mouseMove(e)
@@ -574,8 +643,9 @@
 		/* Save the window new position */
 		this._wDefaultLeft = offsetX;
 		this._wDefaultTop = offsetY;
-	}
-	
+		
+		this._options.onDragging.call(undefined, this._window);
+	}	
 	
 	function initResizeValues(e)
 	{
@@ -596,7 +666,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeNMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeNMouseMove(e)
 	{
 		e.pageY = e.pageY || e.clientY;
@@ -614,6 +687,8 @@
 		
 		this._wDefaultHeight = height;
 		this._wDefaultTop = (this._windowStartTop + (this._windowStartHeight - height));
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeEMouseDown(e)
@@ -621,7 +696,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeEMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeEMouseMove(e)
 	{
 		e.pageX = e.pageX || e.clientX;
@@ -637,6 +715,8 @@
 		applyAllWindowElementsStyles.call(this);
 		
 		this._wDefaultWidth = width;
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeSMouseDown(e)
@@ -644,7 +724,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeSMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeSMouseMove(e)
 	{
 		e.pageY = e.pageY || e.clientY;
@@ -660,6 +743,8 @@
 		applyAllWindowElementsStyles.call(this);
 		
 		this._wDefaultHeight = height;
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeWMouseDown(e)
@@ -667,7 +752,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeWMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeWMouseMove(e)
 	{
 		e.pageX = e.pageX || e.clientX;
@@ -686,6 +774,8 @@
 		
 		this._wDefaultWidth = width;
 		this._wDefaultLeft = (this._windowStartLeft + (this._windowStartWidth - width));
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeNEMouseDown(e)
@@ -693,7 +783,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeNEMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeNEMouseMove(e)
 	{
 		e.pageX = e.pageX || e.clientX;
@@ -721,6 +814,8 @@
 		this._wDefaultWidth = width;
 		this._wDefaultHeight = height;
 		this._wDefaultTop = (this._windowStartTop + (this._windowStartHeight - height));
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeNWMouseDown(e)
@@ -728,7 +823,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeNWMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeNWMouseMove(e)
 	{
 		e.pageX = e.pageX || e.clientX;
@@ -757,6 +855,8 @@
 		this._wDefaultHeight = height;
 		this._wDefaultTop = (this._windowStartTop + (this._windowStartHeight - height));
 		this._wDefaultLeft = (this._windowStartLeft + (this._windowStartWidth - width));
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeSEMouseDown(e)
@@ -764,7 +864,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeSEMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeSEMouseMove(e)
 	{
 		e.pageX = e.pageX || e.clientX;
@@ -788,6 +891,8 @@
 		
 		this._wDefaultWidth = width;
 		this._wDefaultHeight = height;
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeSWMouseDown(e)
@@ -795,7 +900,10 @@
 		initResizeValues.call(this, e);
 		
 		document.documentElement.onmousemove = resizeSWMouseMove.bind(this);
+		
+		this._options.onResizeStart.call(undefined, this._window);
 	}
+	
 	function resizeSWMouseMove(e)
 	{
 		e.pageX = e.pageX || e.clientX;
@@ -822,14 +930,17 @@
 		this._wDefaultWidth = width;
 		this._wDefaultHeight = height;
 		this._wDefaultLeft = (this._windowStartLeft + (this._windowStartWidth - width));
+		
+		this._options.onResizing.call(undefined, this._window);
 	}
 	
 	function resizeMouseUp()
 	{		
 		document.documentElement.onmousemove = null;
 		document.documentElement.onmouseup = null;
-	}
-	
+		
+		this._options.onResizeEnd.call(undefined, this._window);
+	}	
 	
 	function buildWindow()
 	{
@@ -847,8 +958,12 @@
 			this._overlay.className = 'w-overlay';
 
 			/* Window Overlay Style */
-			this._overlay.style.backgroundColor = this._options.overlayColor
-			this._overlay.style.opacity = cssOpacity(this._options.overlayOpacity);
+			if(this._options.overlayColor !== null){
+				this._overlay.style.backgroundColor = this._options.overlayColor;
+			}
+			if(this._options.overlayOpacity !== null){
+				this._overlay.style.opacity = cssOpacity(this._options.overlayOpacity);
+			}
 			/* Place the overlay in the foreground (just behind the window) */
 			this._overlay.style.zIndex = this.instances + 9998;
 
@@ -880,18 +995,16 @@
 		/* Apply styles to all window elements and save their default values */
 		applyAllWindowStyles.call(this);
 		
-		
-		
 		/* Add ajax content */
 		if(this._options.ajaxContent !== null && typeof this._options.ajaxContent === 'object')
 		{
-			if(this._options.ajaxContent.url != '')
+			if(typeof this._options.ajaxContent.url !== 'undefined' && this._options.ajaxContent.url != '')
 			{
 				var loader = document.createElement('div');
 				var imgLoader = document.createElement('img');
 				
 				/* Loader image attributes */
-				imgLoader.setAttribute('src', (typeof this._options.loaderImg === 'string') ? this._options.loaderImg : '');
+				imgLoader.setAttribute('src', (typeof this._options.loaderImg === 'string') ? this._options.loaderImg : './images/w-loader.gif');
 				imgLoader.setAttribute('alt', 'loader');
 				
 				/* Loader attributes */
@@ -906,58 +1019,92 @@
 				/* Append loader element to content container element */
 				this._content.appendChild(loader);
 				
-				if(this._options.ajaxContent.method == 'get')
-				{
-					var request = new XMLHttpRequest();
-					request.open('GET', this._options.ajaxContent.url, true);
-
-					request.onload = function (e) {
-						if (request.readyState === 4) {
-							/* Check if the get was successful. */
-							if (request.status === 200) {
-								
-								var wrapper = document.createElement('div');
-								wrapper.style.paddingBottom = _this._contentPaddingBottom + 'px';
-								wrapper.innerHTML = request.responseText
-								_this._content.appendChild(wrapper);
-								
-								[].forEach.call(_this._content.querySelectorAll('script'), function(v,i,a) {
-									eval(v.innerText);
-								});
-							} else {
-								_this._content.innerHTML = request.statusText;
-							}
-							
-							_this._content.removeChild(loader);
+				this._options.ajaxContent.method = (this._options.ajaxContent.method.toUpperCase() == 'POST' || this._options.ajaxContent.method.toUpperCase() == 'GET') ? this._options.ajaxContent.method.toUpperCase() : 'POST';
+				this._options.ajaxContent.data = (typeof this._options.ajaxContent.data !== 'undefined' && this._options.ajaxContent.data != '') ? this._options.ajaxContent.data : null;
+				
+				var request;
+				try {
+					request = new XMLHttpRequest();
+				} catch (e1) {
+					try {
+						request = new ActiveXObject('Microsoft.XMLHTTP');
+					} catch (e2) {
+						try {
+							request = new ActiveXObject('Msxml2.XMLHTTP');
+						} catch (e3) {
+							request = false;
 						}
-					};
-					/* Catch errors */
-					request.onerror = function (e) {
-						console.error(request.statusText);
-					};
-					
-					request.send(null);
+					}
 				}
-				else if(this._options.ajaxContent.method == 'post') /* NEXT STEP ;) */
+				if(!request){
+					throw new Error('Your browser doesn\'t support ajax queries.');
+					return;
+				}
+				request.onload = function (e) {
+					if (request.readyState === 4) {
+						/* Check if the get was successful. */
+						if (request.status === 200) {
+							
+							var wrapper = document.createElement('div');
+							wrapper.style.paddingBottom = _this._contentPaddingBottom + 'px';
+							wrapper.innerHTML = request.responseText
+							_this._content.appendChild(wrapper);
+							
+							[].forEach.call(_this._content.querySelectorAll('script'), function(v,i,a) {
+								eval(v.innerText);
+							});
+						} else {
+							_this._content.innerHTML = request.statusText;
+						}
+						
+						_this._content.removeChild(loader);
+					}
+				};
+				/* Catch errors */
+				request.onerror = function (e) {
+					throw new Error(request.statusText);
+				};
+				
+				request.open(this._options.ajaxContent.method, this._options.ajaxContent.url, true);
+				
+				if(this._options.ajaxContent.method == 'POST')
 				{
-					
+					request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // IF METHOD = POST ONLY
 				}
-				else{}
+				request.setRequestHeader("X-Requested-With", "XMLHttpRequest"); // TELL TO SERVER THIS IS AN AJAX REQUEST
+				
+				request.send(this._options.ajaxContent.data);
+			}
+			else
+			{
+				throw new Error('The url must be specified in "ajaxContent" object. ie: ajaxContent:{url:\'someurl.com\'}');
 			}
 		}
 		else if(this._options.iframe != null)
 		{
+			var iframeWrapper = document.createElement('div');
+			iframeWrapper.setAttribute('class', 'iframe-loader');
+			iframeWrapper.style.backgroundImage = "url('" + ((typeof this._options.loaderImg === 'string') ? this._options.loaderImg : './images/w-loader.gif') + "')";
+			iframeWrapper.style.backgroundPosition = 'center center';
+			iframeWrapper.style.backgroundRepeat = 'no-repeat';
+
 			var iframe = document.createElement('iframe');
 			iframe.src = this._options.iframe;
 			iframe.width = '100%';
 			iframe.height = '100%';
 			
-			this._content.appendChild(iframe);
+			iframeWrapper.appendChild(iframe);
+			this._content.appendChild(iframeWrapper);
 			applyWindowContentStyle.call(this);
 		}
 		else
 		{
 			this._content.innerHTML = this._options.content;
+		}
+		
+		if(!this._initialStatus)
+		{
+			this._options.onOpen.call(undefined, this._window);
 		}
 	}
 	
@@ -976,13 +1123,11 @@
 	
 	function applyAllWindowElementsStyles()
 	{
-		//saveWindowDefaultValues.call(this);
 		applyWindowControlsStyle.call(this);
 		
 		applyTitleBarStyle.call(this);
 		
 		applyWindowContentStyle.call(this);
-		//saveWindowContentDefaultValues.call(this);
 	}
 	
 	function buildWindowPart()
@@ -1112,10 +1257,10 @@
 		this._reduceEnlargeButton = document.createElement('i');
 
 		this._controlsContainer.className = 'w-controls';
-		this._closeButton.className = 'icon-close red';
-		this._maximizeMinimizeButton.className = 'icon-maximize blue';
-		this._showHideContentButton.className = 'icon-hide orange';
-		this._reduceEnlargeButton.className = 'icon-reduce orange';
+		this._closeButton.className = 'icon-close';
+		this._maximizeMinimizeButton.className = 'icon-maximize';
+		this._showHideContentButton.className = 'icon-hide';
+		this._reduceEnlargeButton.className = 'icon-reduce';
 
 		this._controlsContainer.appendChild(this._closeButton);
 		this._controlsContainer.appendChild(this._maximizeMinimizeButton);
@@ -1152,8 +1297,6 @@
 			this._contentPaddingRight = this._contentDefaultPaddingRight;
 		}
 		
-		
-		//this._content.style.maxHeight = this._wDefaultHeight - this._contentPaddingTop - this._contentPaddingBottom - (this._title.offsetHeight + this._titleBorderWidth) + 'px';
 		var maxHeight = (this._window.clientHeight + this._windowBorderHeight) - this._contentDefaultPaddingTop - this._contentDefaultPaddingBottom - (this._title.offsetHeight + this._titleBorderWidth);
 		this._content.style.maxHeight = maxHeight + 'px';
 		this._content.style.height = maxHeight + 'px';
@@ -1236,30 +1379,6 @@
 	    	}
 		}
 	    return source;
-	}
-
-	/* 53, 121, 127 -> #35797F */
-	function rgbToHex(r, g, b)
-	{
-		return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-	}
-
-	/* #35797F -> 53, 121, 127 */
-	function hexToRgb(hex)
-	{
-		/* Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF") */
-		var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-		hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-			return r + r + g + g + b + b;
-		});
-
-		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result ? {
-			r: parseInt(result[1], 16),
-			g: parseInt(result[2], 16),
-			b: parseInt(result[3], 16),
-			rgb: parseInt(result[1], 16) + ', ' + parseInt(result[2], 16) + ', ' + parseInt(result[3], 16)
-		} : null;
 	}
 
 	/* 75.58654 -> 0.76 */

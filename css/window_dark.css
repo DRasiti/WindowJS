@@ -1,0 +1,223 @@
+.iframe-loader{
+	width: 100%;
+	height: 100%;
+}
+iframe{
+	border: none;
+	margin: 0 0 -10px 0;
+	padding: 0;
+}
+.loader{
+	background: rgba(255, 255, 255, 0.85);
+	position: absolute;
+	
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+}
+.loader > img{
+	
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	
+	-webkit-transform: translate(-50%, -50%);
+       -moz-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+         -o-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+}
+.w-reduced-container{
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	z-index: 999999;
+}
+.w-overlay{
+	position: fixed;
+	
+	width: 100%;
+	height: 100%;
+	
+	top: 0;
+	left: 0;
+	
+	background-color: rgba(255,255,255, .90);
+}
+.window{
+	position: fixed;
+	
+	border: 1px solid #111111;
+	font-family: Helvetica, Verdana, Arial, sans-serif;
+	font-size: .9em;
+	
+	-moz-box-shadow: 4px 4px 8px -4px #111111;
+	-webkit-box-shadow: 4px 4px 8px -4px #111111;
+	-o-box-shadow: 4px 4px 8px -4px #111111;
+	box-shadow: 4px 4px 8px -4px #111111;
+	filter:progid:DXImageTransform.Microsoft.Shadow(color=#111111, Direction=134, Strength=8);
+	
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	
+	background-color: #333333;
+}
+.window.reduced{
+	position: relative;
+	width: 100px;
+	height: 50px;
+	-webkit-transform: none;
+       -moz-transform: none;
+        -ms-transform: none;
+         -o-transform: none;
+            transform: none;
+    top: auto;
+    left: auto;
+    display: inline-block;
+    margin: 0 5px 3px 0;
+    overflow: hidden;
+}
+.w-title{
+	height: 50px;
+	line-height: 52px;
+	padding: 0;
+	border-bottom: 1px solid #111111;
+	background-color: #222222; /*F4F7FF*/
+
+	-moz-border-radius: 4px 4px 0 0;
+	-webkit-border-radius: 4px 4px 0 0;
+	border-radius: 4px 4px 0 0;
+
+	-webkit-user-select: none; /* Chrome/Safari */        
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+
+	/* Rules below not implemented in browsers yet */
+	-o-user-select: none;
+	user-select: none;
+}
+.w-title > span{
+	font-weight: bold;
+	color: #dddddd;
+	display: inline-block;
+	padding-left: 20px;
+	cursor: default;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.w-controls{
+	display: inline-block;
+}
+.w-controls > i{
+	display: inline-block;
+	margin-bottom: 0;
+	text-align: center;
+	float: right;
+	cursor: pointer;
+	color: #666666;
+	font-size: 1.2em; /* CONTROL BUTTONS SIZE */
+	font-style: normal;
+	padding: 0 5px;
+}
+.w-controls > i:first-child{
+	-moz-border-radius: 0 4px 0 0;
+	-webkit-border-radius: 0 4px 0 0;
+	border-radius: 0 4px 0 0;
+}
+/* CONTROL BUTTONS COLORS */
+.w-controls > i.icon-maximize:hover,
+.w-controls > i.icon-minimize:hover{
+	color: #52A8E5; /* BLUE */
+}
+.w-controls > i.icon-hide:hover,
+.w-controls > i.icon-show:hover,
+.w-controls > i.icon-reduce:hover{
+	color: #E5BE52;/* ORANGE */
+}
+.w-controls > i.icon-enlarge:hover{
+	color: #51E2B2; /* GREEN */
+}
+.w-controls > i.icon-close:hover{
+	color: #E55252; /* RED */
+}
+/* END CONTROL BUTTONS COLORS */
+
+.w-content{
+	color: #dddddd;
+	max-height: 100%;
+	overflow: auto;
+	padding: 15px;
+	-moz-border-radius: 0 0 4px 4px;
+	-webkit-border-radius: 0 0 4px 4px;
+	border-radius: 0 0 4px 4px;
+}
+
+.resizable-handle {
+    position: absolute;
+    font-size: 0.1px;
+    display: block;
+    -ms-touch-action: none;
+    touch-action: none;
+}
+.resizable-n,
+.resizable-s{
+	height: 10px;
+}
+.resizable-e,
+.resizable-w{
+	width: 10px;
+}
+.resizable-n {
+    cursor: n-resize;
+    width: 100%;
+    top: -5px;
+    left: 0;
+}
+.resizable-e {
+    cursor: e-resize;
+    right: -5px;
+    top: 0;
+    height: 100%;
+}
+.resizable-s {
+    cursor: s-resize;
+    width: 100%;
+    bottom: -5px;
+    left: 0;
+}
+.resizable-w {
+    cursor: w-resize;
+    left: -5px;
+    top: 0;
+    height: 100%;
+}
+.resizable-ne {
+    cursor: ne-resize;
+    width: 9px;
+    height: 9px;
+    right: -5px;
+    top: -5px;
+}
+.resizable-se {
+    cursor: se-resize;
+    width: 13px;
+    height: 13px;
+    right: -2px;
+    bottom: -2px;
+}
+.resizable-sw {
+    cursor: sw-resize;
+    width: 9px;
+    height: 9px;
+    left: -5px;
+    bottom: -5px;
+}
+.resizable-nw {
+    cursor: nw-resize;
+    width: 9px;
+    height: 9px;
+    left: -5px;
+    top: -5px;
+}
