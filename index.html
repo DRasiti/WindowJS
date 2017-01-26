@@ -3,8 +3,6 @@
 	<head>
 		<title>WindowJS</title>
 		<meta charset="utf-8"/>
-		<meta name="description" content="" />
-       	<meta name="keywords" content="" />
 
        	<link rel="stylesheet" type="text/css" href="./css/window_light.css" />
        	<link rel="stylesheet" type="text/css" href="./css/fontello.css" />
@@ -43,7 +41,12 @@
 </code></pre>
 
 			<h2>Examples</h2>
-
+			
+			<div class="toggleWrapper">
+				<input class="dn" type="checkbox" id="light-dark-btn" checked="checked" />
+				<label class="toggle" for="light-dark-btn"><span class="toggle__handler"></span></label>
+			</div>
+			
 			<div class="center">
 				<a id="open1" class="btn"><span class="icon-enlarge"></span>Ajax</a>
 				<a id="open2" class="btn"><span class="icon-enlarge"></span>Not resizable window !</a>
@@ -418,7 +421,7 @@ document.getElementById('open6').addEventListener('click', function(){
 					</tr>
 				</tbody>
 			</table>
-			<p>Each of callback functions can manipulate the window through the callback parameter (ie. "window")</p>
+			<p>Each of callback functions can manipulate the window through the callback parameter (e.g. "window")</p>
 			<h3 class="code">JavaScript</h3>
 <pre><code class="js">var w1 = null;
 
@@ -537,6 +540,19 @@ document.getElementById('open1').addEventListener('click', function(){
 			
 			document.getElementById('open6').addEventListener('click', function(){
 				new WindowJS();
+			});
+			
+			document.addEventListener("DOMContentLoaded", function() {
+				var lightDarkBtn = document.getElementById('light-dark-btn');
+				lightDarkBtn.addEventListener('click', function(){
+					var currentCss = document.getElementsByTagName("link").item(0);
+					var newCss = document.createElement("link");
+					newCss.setAttribute("rel", "stylesheet");
+					newCss.setAttribute("type", "text/css");
+					newCss.setAttribute("href", ((this.checked) ?  'css/window_light.css' : 'css/window_dark.css' ));
+					
+					document.getElementsByTagName("head").item(0).replaceChild(newCss, currentCss);
+				});
 			});
 		</script>
 	</body>
